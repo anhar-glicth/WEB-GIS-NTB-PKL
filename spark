@@ -1,0 +1,57 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * This file is part of CodeIgniter 4 framework.
+ *
+ * (c) CodeIgniter Foundation <admin@codeigniter.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
+use CodeIgniter\Boot;
+use Config\Paths;
+
+/*
+ * --------------------------------------------------------------------
+ * CODEIGNITER COMMAND-LINE TOOLS
+ * --------------------------------------------------------------------
+ * The main entry point into the CLI system and allows you to run
+ * commands and perform maintenance on your application.
+ */
+
+// Refuse to run when called from php-cgi
+if (str_starts_with(PHP_SAPI, 'cgi')) {
+    exit("The CLI tool is not supported when running php-cgi. It requires php-cli to function.\n");
+}
+
+// Minimum required PHP version
+$minPhpVersion = '8.1';
+if (version_compare(PHP_VERSION, $minPhpVersion, '<')) {
+    exit("Your PHP version must be {$minPhpVersion} or higher to run CodeIgniter. Current version: " . PHP_VERSION . "\n");
+}
+
+// Show all errors in CLI
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+
+// Define front controller path
+define('FCPATH', __DIR__ . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR);
+chdir(FCPATH);
+
+// Load app/Config/Paths.php
+require FCPATH . '../app/Config/Paths.php';
+
+$paths = new Paths();
+
+// Load the framework bootstrap file
+$bootPath = realpath($paths->systemDirectory . '/Boot.php');
+if (! $bootPath) {
+    exit("Boot.php not found at: {$paths->systemDirectory}/Boot.php\n");
+}
+
+require $bootPath;
+
+// Run Spark CLI
+exit(Boot::bootSpark($paths));
