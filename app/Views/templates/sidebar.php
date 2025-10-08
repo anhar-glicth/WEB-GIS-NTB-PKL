@@ -74,6 +74,11 @@
                     <span> Poligon</span></a>
             </li>
              <li class="nav-item">
+                <a class="nav-link" href="<?= base_url('input-tambang') ?>">
+                 <i class="fas fa-map-marker-alt"></i>
+                    <span> Input Data Tambang</span></a>
+            </li>
+             <li class="nav-item">
     <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseLayouts" aria-expanded="false" aria-controls="collapseLayouts">
         <i class="fas fa-columns"></i>
         <span>Layouts</span>
@@ -121,6 +126,7 @@
                     <i class="fas fa-sign-out-alt"></i></i>
                     <span> Log out</span></a>
                 </li>
+                
                 <!-- Sidebar Toggler (Sidebar) -->
                 <div class="text-center d-none d-md-inline">
                     <button class="rounded-circle border-0" id="sidebarToggle"></button>
