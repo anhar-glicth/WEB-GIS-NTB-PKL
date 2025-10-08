@@ -19,7 +19,7 @@
     <?php helper('form'); ?>
 
     <!-- PERBAIKAN: Menambahkan 'user/' di depan URI action agar sesuai dengan namespacing group di Routes.php -->
-    <form action="<?= base_url('user/laporan/insertLaporan') ?>" method="post">
+    <form action="<?= base_url('user/laporan/insertLaporan') ?>"  method="post">
         
         <?= csrf_field() ?>
 
