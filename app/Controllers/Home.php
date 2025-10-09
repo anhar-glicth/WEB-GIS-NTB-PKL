@@ -88,7 +88,7 @@ class Home extends BaseController
             "validation" => \Config\Services::validation() 
         ];
         // Pastikan v_input.php ada di app/Views/v_input.php
-        return view('v_input', $data); 
+        return view('user/v_input', $data); 
     }
 
     /**
@@ -196,7 +196,7 @@ class Home extends BaseController
         // ===================================
         if (!$this->validate($rules)) {
             // Jika validasi gagal, tampilkan view form lagi dengan pesan error dan data lama
-            return view('v_input', [
+            return view('user/v_input', [
                 'validation' => $this->validator
             ]);
         }
@@ -235,6 +235,8 @@ class Home extends BaseController
         // 5. BERIKAN RESPON
         // ===================================
         // Redirect ke halaman daftar laporan
-        return redirect()->to(base_url('user/laporan'))->with('success', 'Data Tambang berhasil disimpan!');
+        // ✅ KODE PERBAIKAN
+// ✅ KODE PERBAIKAN
+return redirect()->to(base_url('user/input-tambang'))->with('success', 'Data Tambang berhasil disimpan!');
     }
 }

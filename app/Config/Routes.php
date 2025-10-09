@@ -87,12 +87,9 @@ $routes->group('user', ['filter' => 'role:user'], function($routes) {
     // --- Rute Laporan User ---
     
     // FIX 1 (GET): Rute untuk link sidebar 'Input Data Tambang' -> /user/input-tambang
-  $routes->get('input-tambang', 'Home::lapor');
- // Menampilkan formulir input data tambang (Home::lapor)
-    
-    // FIX 2 (POST): Rute untuk simpan data numerik dari form (Home::insertLaporan)
-    // Diperbarui agar mengarah ke Home::insertLaporan (metode yang Anda definisikan)
-    $routes->post('laporan/insertLaporan', 'Home::insertLaporan'); 
+  // Rute untuk halaman input data tambang
+    $routes->get('input-tambang', 'Home::lapor');
+    $routes->post('input-tambang', 'Home::insertLaporan');
     
     // FIX 3 (POST): Memperbaiki rute lama agar mengarah ke metode yang benar (Home::insertLaporan)
     // Asumsi 'InputData' adalah typo dari 'insertLaporan'
@@ -107,6 +104,10 @@ $routes->group('user', ['filter' => 'role:user'], function($routes) {
     $routes->get('laporan', 'Laporan::index'); // Laporan::index() untuk daftar laporan user
     $routes->get('lapor', 'Home::lapor'); // Form membuat laporan baru (dipertahankan)
     $routes->post('lapor/save', 'Home::save'); // Simpan laporan dari form 'lapor' (dipertahankan)
+//    $routes->get('user/input-tambang', 'User::inputTambang');
+// $routes->post('user/save-input-tambang', 'User::saveInputTambang');
+
+
     
 });
 

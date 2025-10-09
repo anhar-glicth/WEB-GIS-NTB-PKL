@@ -74,9 +74,11 @@
                     <span> Poligon</span></a>
             </li>
              <li class="nav-item">
-                <a class="nav-link" href="<?= base_url('input-tambang') ?>">
-                 <i class="fas fa-map-marker-alt"></i>
-                    <span> Input Data Tambang</span></a>
+                <a class="nav-link" href="<?= base_url('user/input-tambang') ?>">
+    <i class="fas fa-file-upload"></i>
+    <span>Input Data Tambang</span>
+</a>
+
             </li>
              <li class="nav-item">
     <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseLayouts" aria-expanded="false" aria-controls="collapseLayouts">
