@@ -70,11 +70,12 @@ $routes->group('admin', ['filter' => 'role:admin'], function($routes) {
 // PETUGAS ROUTES
 // ========================
 $routes->group('petugas', ['filter' => 'role:petugas'], function($routes) {
-    $routes->get('/', 'Petugas::index');
+ $routes->get('/', 'Petugas::index');
     $routes->get('laporan', 'Petugas::laporan'); // Melihat daftar laporan
     $routes->get('acc/(:num)', 'Petugas::acc/$1');
     $routes->get('tolak/(:num)', 'Petugas::tolak/$1');
     $routes->get('download/(:num)', 'Petugas::download/$1');
+    $routes->get('detail/(:num)', 'Petugas::detail/$1'); 
 });
 
 // ========================

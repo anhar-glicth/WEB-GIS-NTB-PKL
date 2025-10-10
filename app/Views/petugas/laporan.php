@@ -8,8 +8,8 @@
         <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
     <?php endif; ?>
 
-    <table class="table table-bordered">
-        <thead>
+    <table class="table table-bordered table-striped">
+        <thead class="thead-dark">
             <tr>
                 <th>Judul</th>
                 <th>User</th>
@@ -26,27 +26,30 @@
                 <td>
                     <?php if ($row['status'] == 'pending'): ?>
                         <span class="badge badge-warning">Pending</span>
-                    <?php elseif ($row['status'] == 'approved'): ?>
+                    <?php elseif ($row['status'] == 'acc'): ?>
                         <span class="badge badge-success">Disetujui</span>
-                    <?php elseif ($row['status'] == 'rejected'): ?>
+                    <?php elseif ($row['status'] == 'tolak'): ?>
                         <span class="badge badge-danger">Ditolak</span>
                     <?php endif; ?>
                 </td>
                 <td>
                     <a href="<?= base_url('uploads/' . $row['file']) ?>" target="_blank" class="btn btn-info btn-sm">
-                        <i class="fas fa-file-alt"></i> Lihat
+                        <i class="fas fa-file-alt"></i> Lihat File
                     </a>
                 </td>
                 <td>
+                    <a href="<?= base_url('petugas/detail/' . $row['id']) ?>" class="btn btn-primary btn-sm">
+                        <i class="fas fa-eye"></i> Lihat Detail
+                    </a>
                     <?php if ($row['status'] == 'pending'): ?>
-                      <a href="<?= base_url('petugas/acc/' . $row['id']) ?>" class="btn btn-success btn-sm">
-        <i class="fas fa-check"></i> ACC
-    </a>
-    <a href="<?= base_url('petugas/tolak/' . $row['id']) ?>" class="btn btn-danger btn-sm">
-        <i class="fas fa-times"></i> Tolak
-    </a>
+                        <a href="<?= base_url('petugas/acc/' . $row['id']) ?>" class="btn btn-success btn-sm">
+                            <i class="fas fa-check"></i> ACC
+                        </a>
+                        <a href="<?= base_url('petugas/tolak/' . $row['id']) ?>" class="btn btn-danger btn-sm">
+                            <i class="fas fa-times"></i> Tolak
+                        </a>
                     <?php else: ?>
-                        <span class="text-muted">Tidak ada aksi</span>
+                        <span class="text-muted">-</span>
                     <?php endif; ?>
                 </td>
             </tr>
