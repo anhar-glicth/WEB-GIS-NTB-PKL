@@ -74,17 +74,18 @@
                     <span> Poligon</span></a>
             </li>
              <li class="nav-item">
-                <a class="nav-link" href="<?= base_url('user/input-tambang') ?>">
-    <i class="fas fa-file-upload"></i>
-    <span>Input Data Tambang</span>
+               <a class="nav-link" href="<?= base_url('user/input-tambang') ?>">
+   <i class="fas fa-file-upload"></i>
+   <span>Input data tambang</span>
 </a>
-
-            </li>
-             <li class="nav-item">
-    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseLayouts" aria-expanded="false" aria-controls="collapseLayouts">
-        <i class="fas fa-columns"></i>
-        <span>Layouts</span>
-    </a>
+           </li>
+            
+            <li class="nav-item">
+               <a class="nav-link" href="<?= base_url('user/input-perusahaan') ?>">
+   <i class="fas fa-file-upload"></i>
+   <span>Identitas perusahaan</span>
+</a>
+           </li>
     
     <div class="collapse" id="collapseLayouts" aria-labelledby="headingOne" data-parent="#accordionSidebar">
         <nav class="sb-sidenav-menu-nested nav">
@@ -115,7 +116,12 @@
             <a class="nav-link" href="<?= base_url('/') ?>">
                 <i class="fas fa-users"></i>
                 <span>Laporan tambang</span></a>
-          </li>        
+          </li>   
+           <li class="nav-item">
+            <a class="nav-link" href="<?= base_url('petugas/identitas_perusahaan') ?>">
+                <i class="fas fa-users"></i>
+                <span>identitas perusahaan</span></a>
+          </li>         
 
                 <?php endif; ?>
 

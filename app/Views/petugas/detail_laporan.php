@@ -1,10 +1,38 @@
 <?= $this->extend('templates/index') ?>
 <?= $this->section('page-content') ?>
+
 <div class="container-fluid">
     <h3 class="mb-4 text-gray-800">Detail Laporan</h3>
 
-    <div class="card shadow p-4">
-        <div class="row">
+    <!-- IDENTITAS PERUSAHAAN -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h6 class="m-0 font-weight-bold">Identitas Perusahaan</h6>
+        </div>
+        <div class="card-body row">
+            <div class="col-md-6">
+                <p><strong>Nama Perusahaan:</strong> <?= esc($perusahaan['nama_perusahaan'] ?? '-'); ?></p>
+                <p><strong>Alamat:</strong> <?= esc($perusahaan['alamat_perusahaan'] ?? '-'); ?></p>
+                <p><strong>NPWP:</strong> <?= esc($perusahaan['npwp'] ?? '-'); ?></p>
+                <p><strong>Jenis Usaha:</strong> <?= esc($perusahaan['jenis_usaha'] ?? '-'); ?></p>
+                <p><strong>Tahun Berdiri:</strong> <?= esc($perusahaan['tahun_berdiri'] ?? '-'); ?></p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>NIB:</strong> <?= esc($perusahaan['nib'] ?? '-'); ?></p>
+                <p><strong>Izin Usaha:</strong> <?= esc($perusahaan['izin_usaha'] ?? '-'); ?></p>
+                <p><strong>Masa Berlaku:</strong> <?= esc($perusahaan['masa_berlaku'] ?? '-'); ?></p>
+                <p><strong>Nama Direktur:</strong> <?= esc($perusahaan['nama_direktur'] ?? '-'); ?></p>
+                <p><strong>Email Perusahaan:</strong> <?= esc($perusahaan['email_perusahaan'] ?? '-'); ?></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- DETAIL DATA TAMBANG -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-success text-white">
+            <h6 class="m-0 font-weight-bold">Detail Data Tambang</h6>
+        </div>
+        <div class="card-body row">
             <div class="col-md-6">
                 <p><strong>Judul:</strong> <?= esc($laporan['judul']); ?></p>
                 <p><strong>Nama Blok:</strong> <?= esc($laporan['nama_blok'] ?? '-'); ?></p>
@@ -36,11 +64,11 @@
                 </p>
             </div>
         </div>
-
-        <a href="<?= base_url('petugas') ?>" class="btn btn-secondary mt-3">
-            <i class="fas fa-arrow-left"></i> Kembali
-        </a>
     </div>
+
+    <a href="<?= base_url('petugas') ?>" class="btn btn-secondary mt-3">
+        <i class="fas fa-arrow-left"></i> Kembali
+    </a>
 </div>
 
 <?= $this->endSection() ?>

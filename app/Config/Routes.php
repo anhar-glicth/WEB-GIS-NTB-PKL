@@ -69,13 +69,30 @@ $routes->group('admin', ['filter' => 'role:admin'], function($routes) {
 // ========================
 // PETUGAS ROUTES
 // ========================
+
 $routes->group('petugas', ['filter' => 'role:petugas'], function($routes) {
- $routes->get('/', 'Petugas::index');
-    $routes->get('laporan', 'Petugas::laporan'); // Melihat daftar laporan
+
+    // Dashboard utama
+    $routes->get('/', 'Petugas::dashboard');
+
+    // Laporan
+    $routes->get('laporan', 'Petugas::laporan');
+    $routes->get('detail/(:num)', 'Petugas::detail/$1');
     $routes->get('acc/(:num)', 'Petugas::acc/$1');
     $routes->get('tolak/(:num)', 'Petugas::tolak/$1');
     $routes->get('download/(:num)', 'Petugas::download/$1');
-    $routes->get('detail/(:num)', 'Petugas::detail/$1'); 
+
+    // Data perusahaan (opsional, kalau sudah ada)
+    $routes->get('perusahaan', 'Petugas::perusahaan');
+    $routes->get('perusahaan/detail/(:num)', 'Petugas::detailPerusahaan/$1');
+    $routes->get('perusahaan/edit/(:num)', 'Petugas::editPerusahaan/$1');
+    $routes->get('perusahaan/hapus/(:num)', 'Petugas::hapusPerusahaan/$1');
+ // ✅ Tambahkan dua route ini
+    $routes->get('identitas_perusahaan', 'Petugas::identitas_perusahaan'); 
+    $routes->post('identitas_perusahaan', 'Petugas::simpan_identitas');
+
+
+
 });
 
 // ========================
@@ -131,18 +148,8 @@ $routes->get('Lokasi/dataLokasi', 'Lokasi::dataLokasi');
 $routes->get('Lokasi/pemetaanLokasi', 'Lokasi::pemetaanLokasi');
 $routes->post('Lokasi/insertData', 'Lokasi::insertData');
 
-// ========================
-// ROUTE YANG DIHAPUS KARENA DUPLIKASI/TIDAK TEPAT (KOMENTAR ASLI)
-// ========================
-// $routes->get('laporan', 'Laporan::index', ['filter' => 'role:user']);
-// DIHAPUS, sudah ada di group 'user' sebagai 'user/laporan'
-// ... (beberapa definisi group 'admin' yang duplikat)
-// DIHAPUS/DIKOMBINASIKAN ke satu group 'admin' di atas
-// $routes->get('Home/simpan', 'Home::simpan');
-// DIHAPUS, tidak jelas fungsinya/sudah ada di group 'user'
-// $routes->get('/user/laporan', 'Home::laporanUser');
-// DIHAPUS, sudah diwakili oleh 'user/laporan' -> 'Laporan::index'
-// $routes->get('/petugas/laporan', 'Petugas::laporan');
-// DIHAPUS, sudah ada di group 'petugas'
-// $routes->get('petugas/laporan', 'Laporan::index', ['filter' => 'role:petugas']);
-// DIHAPUS, sudah ada di group 'petugas', dan menggunakan Petugas::laporan untuk konsistensi.
+// ===============================
+// ROUTE INPUT IDENTITAS PERUSAHAAN
+// ===============================
+$routes->get('user/input-perusahaan', 'User::inputPerusahaan', ['filter' => 'role:user']);
+$routes->post('user/input-perusahaan', 'User::saveInputPerusahaan', ['filter' => 'role:user']);
