@@ -1,10 +1,9 @@
-<?php
-
-namespace App\Controllers;
+<?php namespace App\Controllers;
 
 use App\Models\LaporanModel;
 use App\Models\PerusahaanModel;
 use CodeIgniter\Files\File;
+use App\Controllers\BaseController;
 
 class Petugas extends BaseController
 {
@@ -23,32 +22,30 @@ class Petugas extends BaseController
      */
     public function index()
     {
-        // Panggil fungsi dashboard langsung
         return $this->dashboard();
     }
 
     /**
      * Dashboard utama
      */
-   public function dashboard()
-{
-    $data = [
-        'judul'           => 'Dashboard Petugas',
-        'totalLaporan'    => $this->laporanModel->countAllResults(),
-        'laporanAcc'      => $this->laporanModel->where('status', 'acc')->countAllResults(),
-        'laporanTolak'    => $this->laporanModel->where('status', 'tolak')->countAllResults(),
-        'laporanPending'  => $this->laporanModel->where('status', 'pending')->countAllResults(),
-        'laporanTerbaru'  => $this->laporanModel
-            ->select('laporan.*, users.username')
-            ->join('users', 'users.id = laporan.user_id', 'left')
-            ->orderBy('laporan.created_at', 'DESC')
-            ->limit(5)
-            ->findAll(),
-    ];
+    public function dashboard()
+    {
+        $data = [
+            'judul'           => 'Dashboard Petugas',
+            'totalLaporan'    => $this->laporanModel->countAllResults(),
+            'laporanAcc'      => $this->laporanModel->where('status', 'acc')->countAllResults(),
+            'laporanTolak'    => $this->laporanModel->where('status', 'tolak')->countAllResults(),
+            'laporanPending'  => $this->laporanModel->where('status', 'pending')->countAllResults(),
+            'laporanTerbaru'  => $this->laporanModel
+                ->select('laporan.*, users.username')
+                ->join('users', 'users.id = laporan.user_id', 'left')
+                ->orderBy('laporan.created_at', 'DESC')
+                ->limit(5)
+                ->findAll(),
+        ];
 
-    return view('petugas/dashboard', $data);
-}
-
+        return view('petugas/dashboard', $data);
+    }
 
     /**
      * Daftar semua laporan pengguna
@@ -168,15 +165,27 @@ class Petugas extends BaseController
 
         return view('petugas/laporan_pending', $data);
     }
-     public function identitas_perusahaan()
+    
+    /**
+     * Menampilkan daftar SEMUA identitas perusahaan (Untuk Petugas)
+     */
+    public function identitas_perusahaan()
     {
-        // ambil data dari model kalau perlu
         $model = new PerusahaanModel();
         $data['perusahaan'] = $model->findAll();
 
         return view('petugas/identitas_perusahaan', $data);
     }
 
+    /**
+     * Metode proxy untuk menampilkan daftar semua perusahaan.
+     * Menggunakan nama method detailPerusahaan untuk route yang spesifik.
+     */
+    public function detailPerusahaan()
+    {
+        return $this->identitas_perusahaan();
+    }
+    
     public function simpan_identitas()
     {
         $model = new PerusahaanModel();

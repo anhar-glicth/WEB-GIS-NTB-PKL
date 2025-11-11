@@ -1,32 +1,40 @@
-<?php
+<?php namespace App\Controllers;
 
-namespace App\Controllers;
-
+use App\Models\PerusahaanModel;
 use App\Models\LaporanModel;
-use App\Models\PerusahaanModel; // ✅ tambahkan ini untuk model perusahaan
+use App\Controllers\BaseController;
 
 class User extends BaseController
 {
+    protected $perusahaanModel;
+    protected $laporanModel;
+
+    public function __construct()
+    {
+        // Inisialisasi model di constructor agar bisa digunakan di semua method
+        $this->perusahaanModel = new PerusahaanModel();
+        $this->laporanModel = new LaporanModel();
+    }
+    
     // ======================
-    // DASHBOARD USER
+    // 1. DASHBOARD USER
     // ======================
     public function index()
     {
-        $laporanModel = new LaporanModel();
-        $userId = user_id(); // dari Myth/Auth
+        $userId = user_id(); // Mendapatkan ID pengguna yang sedang login
 
         $data = [
             'judul' => 'Dashboard User',
-            'totalLaporan'   => $laporanModel->where('user_id', $userId)->countAllResults(),
-            'approvedLaporan'=> $laporanModel->where(['user_id' => $userId, 'status' => 'approved'])->countAllResults(),
-            'rejectedLaporan'=> $laporanModel->where(['user_id' => $userId, 'status' => 'rejected'])->countAllResults(),
+            'totalLaporan'   => $this->laporanModel->where('user_id', $userId)->countAllResults(),
+            // Menggunakan status 'acc' dan 'tolak' sesuai asumsi pada Controller Petugas
+            'approvedLaporan'=> $this->laporanModel->where(['user_id' => $userId, 'status' => 'acc'])->countAllResults(),
+            'rejectedLaporan'=> $this->laporanModel->where(['user_id' => $userId, 'status' => 'tolak'])->countAllResults(),
         ];
-
         return view('user/index', $data);
     }
 
     // ======================
-    // FORM INPUT TAMBANG
+    // 2. FORM INPUT TAMBANG
     // ======================
     public function inputTambang()
     {
@@ -39,15 +47,14 @@ class User extends BaseController
     }
 
     // ======================
-    // SIMPAN DATA TAMBANG
+    // 3. SIMPAN DATA TAMBANG
     // ======================
     public function saveInputTambang()
     {
-        $laporanModel = new LaporanModel();
-
         $rules = [
             'nama_blok' => 'required|max_length[255]',
             'luas_ha' => 'required|numeric|greater_than_equal_to[0]',
+            // Tambahkan semua aturan validasi lainnya sesuai kebutuhan form
             'sd_tereka_volume' => 'permit_empty|numeric|greater_than_equal_to[0]',
             'sd_tereka_tonase' => 'permit_empty|numeric|greater_than_equal_to[0]',
             'sd_terunjuk_volume' => 'permit_empty|numeric|greater_than_equal_to[0]',
@@ -65,15 +72,19 @@ class User extends BaseController
         ];
 
         if (!$this->validate($rules)) {
-            return view('user/v_input', [
-                'validation' => $this->validator
-            ]);
+            $data = [
+                'validation' => $this->validator,
+                'judul' => 'Form Input Data Tambang',
+            ];
+            return view('user/v_input', $data);
         }
 
-        $laporanModel->save([
+        // Simpan data ke tabel laporan
+        $this->laporanModel->save([
             'user_id' => user_id(),
             'nama_blok' => $this->request->getPost('nama_blok'),
             'luas_ha' => $this->request->getPost('luas_ha'),
+            // Semua field lainnya...
             'sd_tereka_volume' => $this->request->getPost('sd_tereka_volume'),
             'sd_tereka_tonase' => $this->request->getPost('sd_tereka_tonase'),
             'sd_terunjuk_volume' => $this->request->getPost('sd_terunjuk_volume'),
@@ -94,26 +105,35 @@ class User extends BaseController
         return redirect()->to(base_url('user/laporan'))->with('success', 'Data tambang berhasil disimpan!');
     }
 
+
     // ==========================================================
-    // FORM INPUT IDENTITAS PERUSAHAAN
+    // 4. FORM INPUT IDENTITAS PERUSAHAAN (Untuk Edit/Insert)
     // ==========================================================
     public function inputPerusahaan()
     {
+        $userId = user_id();
+
+        // Cek apakah data perusahaan sudah ada (untuk mengisi form jika edit)
+        $perusahaan = $this->perusahaanModel->where('user_id', $userId)->first();
+        
         $data = [
-            'judul' => 'Form Identitas Perusahaan',
+            'judul' => empty($perusahaan) ? 'Form Identitas Perusahaan' : 'Edit Identitas Perusahaan',
+            'perusahaan' => $perusahaan,
             'validation' => \Config\Services::validation(),
         ];
 
+        // View yang dituju: app/Views/user/input-perusahaan.php
         return view('user/input-perusahaan', $data);
     }
 
     // ==========================================================
-    // SIMPAN DATA IDENTITAS PERUSAHAAN
+    // 5. SIMPAN/UPDATE DATA IDENTITAS PERUSAHAAN
     // ==========================================================
     public function saveInputPerusahaan()
     {
-        $perusahaanModel = new PerusahaanModel();
+        $userId = user_id();
 
+        // Aturan validasi untuk data perusahaan
         $rules = [
             'nama_perusahaan'   => 'required|min_length[3]',
             'alamat_perusahaan' => 'required',
@@ -130,13 +150,31 @@ class User extends BaseController
         ];
 
         if (!$this->validate($rules)) {
+            // Jika validasi gagal, kembalikan user ke form dengan data input sebelumnya
+             $perusahaanData = [
+                'nama_perusahaan' => $this->request->getPost('nama_perusahaan'),
+                'alamat_perusahaan' => $this->request->getPost('alamat_perusahaan'),
+                'npwp' => $this->request->getPost('npwp'),
+                'jenis_usaha' => $this->request->getPost('jenis_usaha'),
+                'tahun_berdiri' => $this->request->getPost('tahun_berdiri'),
+                'nib' => $this->request->getPost('nib'),
+                'izin_usaha' => $this->request->getPost('izin_usaha'),
+                'masa_berlaku' => $this->request->getPost('masa_berlaku'),
+                'nama_direktur' => $this->request->getPost('nama_direktur'),
+                'email_perusahaan' => $this->request->getPost('email_perusahaan'),
+                'no_telepon' => $this->request->getPost('no_telepon'),
+                'website' => $this->request->getPost('website'),
+            ];
+
             return view('user/input-perusahaan', [
-                'validation' => $this->validator
+                'validation' => $this->validator,
+                'judul' => 'Form Identitas Perusahaan',
+                'perusahaan' => $perusahaanData 
             ]);
         }
 
         $data = [
-            'user_id'           => user_id(),
+            'user_id'           => $userId,
             'nama_perusahaan'   => $this->request->getPost('nama_perusahaan'),
             'alamat_perusahaan' => $this->request->getPost('alamat_perusahaan'),
             'npwp'              => $this->request->getPost('npwp'),
@@ -151,8 +189,44 @@ class User extends BaseController
             'website'           => $this->request->getPost('website')
         ];
 
-        $perusahaanModel->insert($data);
+        // Cek data yang sudah ada untuk menentukan insert atau update (Upsert Logic)
+        $existingPerusahaan = $this->perusahaanModel->where('user_id', $userId)->first();
+        
+        if ($existingPerusahaan) {
+            // Update data yang sudah ada
+            $this->perusahaanModel->update($existingPerusahaan['id'], $data);
+            $message = 'Data identitas perusahaan berhasil diperbarui!';
+        } else {
+            // Insert data baru
+            $this->perusahaanModel->insert($data);
+            $message = 'Data identitas perusahaan berhasil disimpan!';
+        }
 
-        return redirect()->to(base_url('user/input-perusahaan'))->with('success', 'Data identitas perusahaan berhasil disimpan!');
+        // Redirect ke halaman detail setelah save/update
+        return redirect()->to(base_url('user/detailPerusahaan'))->with('success', $message);
+    }
+    
+    // ==========================================================
+    // 6. TAMPILKAN DETAIL PERUSAHAAN (Untuk User yang sedang login)
+    // ==========================================================
+    public function detailPerusahaan()
+    {
+        $userId = user_id(); 
+
+        // Cari data perusahaan berdasarkan user ID
+        $perusahaan = $this->perusahaanModel->where('user_id', $userId)->first();
+        
+        // Jika data belum ada, arahkan ke form input
+        if (!$perusahaan) {
+            return redirect()->to(base_url('user/input-perusahaan'))->with('info', 'Mohon lengkapi data identitas perusahaan terlebih dahulu.');
+        }
+
+        $data = [
+            'judul' => 'Detail Identitas Perusahaan',
+            'perusahaan' => $perusahaan,
+        ];
+
+        // View yang dituju: app/Views/user/detail-perusahaan.php
+        return view('user/detail-perusahaan', $data); 
     }
 }

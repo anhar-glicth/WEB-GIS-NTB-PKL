@@ -35,13 +35,11 @@ $routes->group('admin', ['filter' => 'role:admin'], function($routes) {
     $routes->post('updateProfile', 'Admin::updateProfile');
 
     // User Management (Di dalam group 'admin' untuk akses 'admin/user/*')
-    $routes->get('user-list', 'Admin::userList');      // Menggantikan 'user' & 'userList'
-    $routes->get('create-user', 'Admin::createUser');  // Form buat user baru
-    $routes->post('saveUser', 'Admin::saveUser');      // Simpan user baru/edit
+    $routes->get('userList', 'Admin::userList');     // OK (camelCase)
+    $routes->get('createUser', 'Admin::createUser'); // FIX: Diubah menjadi 'createUser' agar sesuai dengan permintaan Anda
+    $routes->post('saveUser', 'Admin::saveUser');    // Simpan user baru/edit
     
     // Route User Management yang spesifik ke Controller User:
-    // **Catatan:** Sebaiknya gunakan satu Controller saja (Admin atau User) untuk User Management.
-    // Saya pertahankan User Controller yang ada:
     $routes->get('user', 'User::index'); // User Management Dashboard
     $routes->get('user/insertUser', 'User::insertUser');
     $routes->get('user/editUser/(:any)', 'User::editUser/$1');
@@ -87,16 +85,14 @@ $routes->group('petugas', ['filter' => 'role:petugas'], function($routes) {
     $routes->get('perusahaan/detail/(:num)', 'Petugas::detailPerusahaan/$1');
     $routes->get('perusahaan/edit/(:num)', 'Petugas::editPerusahaan/$1');
     $routes->get('perusahaan/hapus/(:num)', 'Petugas::hapusPerusahaan/$1');
- // ✅ Tambahkan dua route ini
+    // Tambahkan dua route ini
     $routes->get('identitas_perusahaan', 'Petugas::identitas_perusahaan'); 
     $routes->post('identitas_perusahaan', 'Petugas::simpan_identitas');
-
-
-
+    
 });
 
 // ========================
-// USER ROUTES (PERBAIKAN: Konsistensi Controller Home)
+// USER ROUTES (TERMASUK PERUSAHAAN DAN DETAIL BARU)
 // ========================
 $routes->group('user', ['filter' => 'role:user'], function($routes) {
     // Dashboard User
@@ -105,7 +101,7 @@ $routes->group('user', ['filter' => 'role:user'], function($routes) {
     // --- Rute Laporan User ---
     
     // FIX 1 (GET): Rute untuk link sidebar 'Input Data Tambang' -> /user/input-tambang
-  // Rute untuk halaman input data tambang
+    // Rute untuk halaman input data tambang
     $routes->get('input-tambang', 'Home::lapor');
     $routes->post('input-tambang', 'Home::insertLaporan');
     
@@ -122,11 +118,16 @@ $routes->group('user', ['filter' => 'role:user'], function($routes) {
     $routes->get('laporan', 'Laporan::index'); // Laporan::index() untuk daftar laporan user
     $routes->get('lapor', 'Home::lapor'); // Form membuat laporan baru (dipertahankan)
     $routes->post('lapor/save', 'Home::save'); // Simpan laporan dari form 'lapor' (dipertahankan)
-//    $routes->get('user/input-tambang', 'User::inputTambang');
-// $routes->post('user/save-input-tambang', 'User::saveInputTambang');
 
-
+    // ===================================
+    // RUTE BARU & PERBAIKAN IDENTITAS PERUSAHAAN
+    // ===================================
+    // Menampilkan detail perusahaan (Rute yang tadinya hilang)
+    $routes->get('detailPerusahaan', 'User::detailPerusahaan'); 
     
+    // Form Input Identitas Perusahaan (Dipindahkan ke dalam group)
+    $routes->get('input-perusahaan', 'User::inputPerusahaan');
+    $routes->post('input-perusahaan', 'User::saveInputPerusahaan');
 });
 
 
@@ -149,7 +150,7 @@ $routes->get('Lokasi/pemetaanLokasi', 'Lokasi::pemetaanLokasi');
 $routes->post('Lokasi/insertData', 'Lokasi::insertData');
 
 // ===============================
-// ROUTE INPUT IDENTITAS PERUSAHAAN
+// ** CATATAN: Blok ini dihapus karena sudah dipindahkan ke dalam group 'user' di atas.
 // ===============================
-$routes->get('user/input-perusahaan', 'User::inputPerusahaan', ['filter' => 'role:user']);
-$routes->post('user/input-perusahaan', 'User::saveInputPerusahaan', ['filter' => 'role:user']);
+// $routes->get('user/input-perusahaan', 'User::inputPerusahaan', ['filter' => 'role:user']);
+// $routes->post('user/input-perusahaan', 'User::saveInputPerusahaan', ['filter' => 'role:user']);
