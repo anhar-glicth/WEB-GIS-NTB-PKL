@@ -149,8 +149,16 @@ $routes->get('Lokasi/dataLokasi', 'Lokasi::dataLokasi');
 $routes->get('Lokasi/pemetaanLokasi', 'Lokasi::pemetaanLokasi');
 $routes->post('Lokasi/insertData', 'Lokasi::insertData');
 
-// ===============================
-// ** CATATAN: Blok ini dihapus karena sudah dipindahkan ke dalam group 'user' di atas.
-// ===============================
-// $routes->get('user/input-perusahaan', 'User::inputPerusahaan', ['filter' => 'role:user']);
-// $routes->post('user/input-perusahaan', 'User::saveInputPerusahaan', ['filter' => 'role:user']);
+$routes->get('poligon', 'ControlersPoligon::index');
+
+
+$routes->post('poligon/simpan', 'ControlersPoligon::simpan');
+// ... di dalam group petugas ...
+$routes->group('petugas', ['filter' => 'role:petugas'], function($routes) {
+    // ... route petugas yang lain ...
+
+    // Rute Baru untuk Data Poligon
+    $routes->get('data-poligon', 'PetugasPoligon::index');
+    $routes->get('data-poligon/hapus/(:num)', 'PetugasPoligon::hapus/$1');
+
+});

@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\LaporanModel; // Diperlukan untuk mengakses model laporan
+use App\Models\ModelKoordinat; // Diperlukan untuk mengakses model koordinat poligon
 use CodeIgniter\Files\File; // Diperlukan untuk penanganan file
 
 class Home extends BaseController
@@ -56,9 +57,10 @@ class Home extends BaseController
     public function poligon(): string
     {
         $data = [
-            "judul" => "Poligon",
+            "judul" => "Input Data Poligon",
             "page"  => "v_poligon",
         ];
+        // Pastikan file view bernama v_poligon.php ada di folder app/Views/user/
         return view('user/v_poligon', $data);
     }
 
@@ -71,6 +73,85 @@ class Home extends BaseController
     {
         return view('users/index');
     }
+
+    // ====================================
+    // FUNGSI-FUNGSI POLIGON (BARU)
+    // ====================================
+
+    /**
+     * Memproses penyimpanan data poligon dinamis (POST).
+     */
+    public function simpanPoligon()
+    {
+        $model = new ModelKoordinat();
+        
+        // Ambil data umum (Header)
+        $companyName = $this->request->getPost('companyName');
+        $locationName = $this->request->getPost('locationName');
+        $permit = $this->request->getPost('permit');
+        
+        // 1. Handle Upload FOTO
+        $foto = $this->request->getFile('foto_lokasi');
+        $namaFoto = null;
+        
+        if ($foto && $foto->isValid() && ! $foto->hasMoved()) {
+            $namaFoto = $foto->getRandomName();
+            $foto->move('uploads/lokasi', $namaFoto); // Simpan ke folder public/uploads/lokasi
+        }
+
+        // 2. Handle Upload DOKUMEN (PDF/DOC)
+        $dokumen = $this->request->getFile('dokumen_pendukung');
+        $namaDokumen = null;
+        
+        if ($dokumen && $dokumen->isValid() && ! $dokumen->hasMoved()) {
+            $namaDokumen = $dokumen->getRandomName();
+            $dokumen->move('uploads/dokumen', $namaDokumen); // Simpan ke folder public/uploads/dokumen
+        }
+
+        // Ambil data array koordinat (karena dinamis)
+        $lat_deg = $this->request->getPost('lat_deg');
+        $lat_min = $this->request->getPost('lat_min');
+        $lat_sec = $this->request->getPost('lat_sec');
+        $lat_dir = $this->request->getPost('lat_dir');
+        
+        $long_deg = $this->request->getPost('long_deg');
+        $long_min = $this->request->getPost('long_min');
+        $long_sec = $this->request->getPost('long_sec');
+        $long_dir = $this->request->getPost('long_dir');
+
+        // Looping untuk menyimpan setiap titik
+        if (is_array($lat_deg)) {
+            foreach ($lat_deg as $key => $val) {
+                // Pastikan data tidak kosong sebelum insert
+                if(!empty($lat_deg[$key]) && !empty($long_deg[$key])) {
+                    $dataSimpan = [
+                        'companyName'       => $companyName,
+                        'locationName'      => $locationName,
+                        'permit'            => $permit,
+                        'foto_lokasi'       => $namaFoto,
+                        'dokumen_pendukung' => $namaDokumen,
+                        
+                        // Data Koordinat per baris
+                        'latitude_deg'  => $lat_deg[$key],
+                        'latitude_min'  => $lat_min[$key],
+                        'latitude_sec'  => $lat_sec[$key],
+                        'latitude_dir'  => $lat_dir[$key],
+                        
+                        'longitude_deg' => $long_deg[$key],
+                        'longitude_min' => $long_min[$key],
+                        'longitude_sec' => $long_sec[$key],
+                        'longitude_dir' => $long_dir[$key],
+                    ];
+
+                    $model->insert($dataSimpan);
+                }
+            }
+        }
+
+        // Redirect kembali ke halaman poligon dengan pesan sukses
+        return redirect()->to(base_url('Home/poligon'))->with('success', 'Data Koordinat Poligon Berhasil Disimpan!');
+    }
+
 
     // ====================================
     // FUNGSI-FUNGSI LAPORAN (REPORTING)
@@ -235,8 +316,6 @@ class Home extends BaseController
         // 5. BERIKAN RESPON
         // ===================================
         // Redirect ke halaman daftar laporan
-        // ✅ KODE PERBAIKAN
-// ✅ KODE PERBAIKAN
-return redirect()->to(base_url('user/input-tambang'))->with('success', 'Data Tambang berhasil disimpan!');
+        return redirect()->to(base_url('user/input-tambang'))->with('success', 'Data Tambang berhasil disimpan!');
     }
 }

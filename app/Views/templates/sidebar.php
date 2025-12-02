@@ -74,6 +74,11 @@
                     <span> Poligon</span></a>
             </li>
              <li class="nav-item">
+                <a class="nav-link" href="<?= base_url('poligon_view') ?>">
+                 <i class="fas fa-map-marker-alt"></i>
+                    <span> Input Koordinaat tambang</span></a>
+            </li>
+             <li class="nav-item">
                <a class="nav-link" href="<?= base_url('user/input-tambang') ?>">
    <i class="fas fa-file-upload"></i>
    <span>Input data tambang</span>
@@ -121,7 +126,13 @@
             <a class="nav-link" href="<?= base_url('petugas/identitas_perusahaan') ?>">
                 <i class="fas fa-users"></i>
                 <span>identitas perusahaan</span></a>
-          </li>         
+          </li>  
+          <li class="nav-item">
+    <a class="nav-link" href="<?= base_url('petugas/data-poligon') ?>">
+        <i class="fas fa-map-marked-alt"></i> <!-- Saya sesuaikan ikonnya agar relevan dengan koordinat/peta -->
+        <span>Koordinat Tambang</span>
+    </a>
+</li>       
 
                 <?php endif; ?>
 
