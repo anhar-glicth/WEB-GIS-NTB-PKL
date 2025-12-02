@@ -6,29 +6,51 @@ use CodeIgniter\Model;
 
 class LaporanModel extends Model
 {
-    protected $table = 'laporan';          // Nama tabel di database
-    protected $primaryKey = 'id';          // Primary key
+    protected $table = 'laporan';
+    protected $primaryKey = 'id';
 
-    // Kolom yang boleh diisi (sesuaikan dengan tabel kamu)
+    // PERBAIKAN: Menambahkan kolom data tambang agar BISA DISIMPAN
     protected $allowedFields = [
+        // Data Utama
         'judul',
         'file',
         'user_id',
         'status',
+        
+        // Data Detail Tambang (Wajib ditambahkan disini)
+        'nama_blok',
+        'luas_ha',
+        
+        // Sumberdaya
+        'sd_tereka_volume',
+        'sd_tereka_tonase',
+        'sd_terunjuk_volume',
+        'sd_terunjuk_tonase',
+        'sd_terukur_volume',
+        'sd_terukur_tonase',
+        
+        // Cadangan
+        'cd_terkira_volume',
+        'cd_terkira_tonase',
+        'cd_terbukti_volume',
+        'cd_terbukti_tonase',
+        
+        // Produksi
+        'prod_harian',
+        'prod_bulanan',
+        'prod_tahunan',
+        'umur_tambang',
+
+        // Timestamps
         'created_at',
         'updated_at',
         'verified_at'
     ];
 
-    // Mengaktifkan fitur timestamps otomatis
     protected $useTimestamps = true;
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
 
-    /**
-     * Ambil laporan terbaru untuk dashboard petugas
-     * @param int $limit jumlah laporan yang diambil (default 5)
-     */
     public function getLaporanTerbaru($limit = 5)
     {
         return $this->select('laporan.*, users.username, users.email')
@@ -38,25 +60,16 @@ class LaporanModel extends Model
                     ->findAll();
     }
 
-    /**
-     * Hitung jumlah laporan berdasarkan status
-     */
     public function countByStatus($status)
     {
         return $this->where('status', $status)->countAllResults();
     }
 
-    /**
-     * Insert laporan baru (lebih clean)
-     */
     public function insertLaporan($laporan)
     {
         return $this->insert($laporan);
     }
 
-    /**
-     * Ambil laporan berdasarkan status tertentu
-     */
     public function getLaporanByStatus($status)
     {
         return $this->select('laporan.*, users.username, users.email')
@@ -66,9 +79,6 @@ class LaporanModel extends Model
                     ->findAll();
     }
 
-    /**
-     * Ambil detail laporan lengkap (dengan data user)
-     */
     public function getDetailLaporan($id)
     {
         return $this->select('laporan.*, users.username, users.email')

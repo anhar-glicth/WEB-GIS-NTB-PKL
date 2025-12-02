@@ -8,7 +8,9 @@ class PerusahaanModel extends Model
 {
     protected $table = 'perusahaan';
     protected $primaryKey = 'id';
+    
     protected $allowedFields = [
+        'user_id', // <--- WAJIB ADA untuk relasi
         'nama_perusahaan',
         'alamat_perusahaan',
         'npwp',
