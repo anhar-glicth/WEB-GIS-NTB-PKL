@@ -76,7 +76,22 @@ class Filters extends BaseFilters
             // 'honeypot',
             // 'csrf',
             // 'invalidchars',
-            'login'
+            'login' => [
+                'except' => [
+                    // DAFTAR HALAMAN YANG BOLEH DIAKSES TANPA LOGIN
+                    'login',
+                    'register',
+                    'forgot',
+                    'reset-password',
+                    'activate-account',
+                    'resend-activate-account',
+                    
+                    // --- PENTING: Izinkan Halaman Landing Page ---
+                    '/',           
+                    'landing',     
+                    'landing/*'    
+                ]
+            ],
         ],
         'after' => [
             // 'honeypot',

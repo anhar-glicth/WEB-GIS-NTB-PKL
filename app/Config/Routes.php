@@ -10,7 +10,8 @@ $routes = Services::routes();
 // ========================
 // DEFAULT ROUTE
 // ========================
-$routes->get('/', 'Home::index');
+$routes->get('/', 'Landing::index');
+// $routes->get('/', 'Home::index');
 
 // ========================
 // AUTH ROUTES
@@ -77,9 +78,11 @@ $routes->group('petugas', ['filter' => 'role:petugas'], function($routes) {
 
     // Laporan
     $routes->get('laporan', 'Petugas::laporan');
+    $routes->get('detail_laporan/(:num)', 'Petugas::detail/$1'); // URL Baru
     $routes->get('detail/(:num)', 'Petugas::detail/$1');
     $routes->get('acc/(:num)', 'Petugas::acc/$1');
-   $routes->post('tolak/(:num)', 'Petugas::tolak/$1');
+    $routes->post('tolak/(:num)', 'Petugas::tolak/$1');
+//    $routes->get('tolak/(:num)', 'Petugas::tolak/$1');
     $routes->get('download/(:num)', 'Petugas::download/$1');
 
     // Data perusahaan

@@ -76,7 +76,8 @@ class Petugas extends BaseController
             ->first();
 
         if (!$laporan) {
-            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Laporan tidak ditemukan.');
+            // Menggunakan redirect back agar lebih ramah user daripada throw exception
+            return redirect()->back()->with('error', 'Laporan tidak ditemukan.');
         }
 
         $perusahaan = $this->perusahaanModel
@@ -104,14 +105,16 @@ class Petugas extends BaseController
 
         $this->laporanModel->update($id, [
             'status' => 'acc',
-            'verified_at' => date('Y-m-d H:i:s')
+            'verified_at' => date('Y-m-d H:i:s'),
+            // Hapus catatan penolakan jika sebelumnya pernah ditolak lalu diperbaiki dan di-acc
+            'catatan_penolakan' => null 
         ]);
 
-        return redirect()->to(base_url('petugas'))->with('success', 'Laporan berhasil disetujui.');
+        return redirect()->to(base_url('petugas/laporan'))->with('success', 'Laporan berhasil disetujui.');
     }
 
     /**
-     * Tolak laporan
+     * Tolak laporan dengan catatan
      */
     public function tolak($id)
     {
@@ -120,12 +123,21 @@ class Petugas extends BaseController
             return redirect()->back()->with('error', 'Laporan tidak ditemukan.');
         }
 
+        // UPDATE: Mengambil catatan dari input POST (dari Modal di View)
+        $catatan = $this->request->getPost('catatan_penolakan');
+
+        // Validasi: Pastikan ada alasan penolakan
+        if (empty($catatan)) {
+            return redirect()->back()->with('error', 'Wajib menyertakan alasan penolakan atau catatan revisi.');
+        }
+
         $this->laporanModel->update($id, [
             'status' => 'tolak',
+            'catatan_penolakan' => $catatan, // Simpan alasan penolakan
             'verified_at' => date('Y-m-d H:i:s')
         ]);
 
-        return redirect()->to(base_url('petugas'))->with('success', 'Laporan berhasil ditolak.');
+        return redirect()->to(base_url('petugas/laporan'))->with('success', 'Laporan ditolak. Catatan revisi telah dikirim ke pengguna.');
     }
 
     /**
@@ -136,13 +148,19 @@ class Petugas extends BaseController
         $laporan = $this->laporanModel->find($id);
 
         if (!$laporan) {
-            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('File tidak ditemukan.');
+            return redirect()->back()->with('error', 'Data laporan tidak ditemukan.');
         }
 
         $filePath = WRITEPATH . 'uploads/' . $laporan['file'];
 
         if (!file_exists($filePath)) {
-            return redirect()->back()->with('error', 'File tidak ditemukan di server.');
+            // Coba cek juga di folder public/uploads jika file tidak ada di writable
+            $publicPath = FCPATH . 'uploads/' . $laporan['file'];
+            if (file_exists($publicPath)) {
+                return $this->response->download($publicPath, null);
+            }
+            
+            return redirect()->back()->with('error', 'File fisik tidak ditemukan di server.');
         }
 
         return $this->response->download($filePath, null);
@@ -179,7 +197,6 @@ class Petugas extends BaseController
 
     /**
      * Metode proxy untuk menampilkan daftar semua perusahaan.
-     * Menggunakan nama method detailPerusahaan untuk route yang spesifik.
      */
     public function detailPerusahaan()
     {

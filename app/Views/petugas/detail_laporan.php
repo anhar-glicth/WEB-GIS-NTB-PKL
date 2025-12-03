@@ -23,7 +23,6 @@
                     <h6 class="m-0 font-weight-bold">Data Laporan Tambang</h6>
                 </div>
                 <div class="card-body">
-                    <!-- Tampilkan Detail Data (Sama seperti sebelumnya) -->
                     <div class="row mb-3">
                         <div class="col-md-4 font-weight-bold">Judul Laporan</div>
                         <div class="col-md-8">: <?= esc($laporan['judul']); ?></div>
@@ -39,7 +38,6 @@
                     
                     <hr>
                     <h6 class="font-weight-bold text-primary mb-3">Sumberdaya & Cadangan</h6>
-                    
                     <div class="row">
                         <div class="col-md-6">
                             <ul class="list-unstyled">
@@ -75,9 +73,8 @@
             </div>
         </div>
 
-        <!-- IDENTITAS PERUSAHAAN & AKSI -->
+        <!-- IDENTITAS & AKSI -->
         <div class="col-lg-4">
-            <!-- Card Identitas Perusahaan -->
             <div class="card shadow mb-4">
                 <div class="card-header py-3 bg-primary text-white">
                     <h6 class="m-0 font-weight-bold">Identitas Perusahaan</h6>
@@ -85,21 +82,20 @@
                 <div class="card-body">
                     <?php if ($perusahaan): ?>
                         <h5 class="font-weight-bold"><?= esc($perusahaan['nama_perusahaan']); ?></h5>
-                        <p class="text-muted small mb-3"><i class="fas fa-map-marker-alt"></i> <?= esc($perusahaan['alamat_perusahaan']); ?></p>
+                        <p class="text-muted small mb-3"><?= esc($perusahaan['alamat_perusahaan']); ?></p>
                         <div class="mb-2">
-                            <span class="d-block small font-weight-bold text-gray-600">Direktur Utama:</span>
-                            <?= esc($perusahaan['nama_direktur']); ?>
+                            <span class="d-block small font-weight-bold">Direktur:</span> <?= esc($perusahaan['nama_direktur']); ?>
                         </div>
-                        <!-- ... data perusahaan lainnya ... -->
+                        <div class="mb-2">
+                            <span class="d-block small font-weight-bold">Kontak:</span> <?= esc($perusahaan['no_telepon']); ?>
+                        </div>
                     <?php else: ?>
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle"></i> Data Perusahaan belum dilengkapi.
-                        </div>
+                        <div class="alert alert-warning small">Data Perusahaan belum dilengkapi.</div>
                     <?php endif; ?>
                 </div>
             </div>
 
-            <!-- CARD AKSI VERIFIKASI (MODIFIED) -->
+            <!-- CARD AKSI VERIFIKASI -->
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-dark">Aksi Verifikasi</h6>
@@ -109,7 +105,8 @@
                     <?php if ($laporan['status'] == 'pending') : ?>
                         <p class="small text-muted mb-3">Tentukan status laporan ini:</p>
                         <div class="d-flex justify-content-center">
-                            <!-- Tombol ACC (Langsung) -->
+                            
+                            <!-- Tombol ACC -->
                             <a href="<?= base_url('petugas/acc/' . $laporan['id']); ?>" 
                                class="btn btn-success btn-icon-split mr-2"
                                onclick="return confirm('Yakin menyetujui laporan ini?');">
@@ -118,23 +115,26 @@
                             </a>
 
                             <!-- Tombol TOLAK (Pemicu Modal) -->
-                            <button type="button" class="btn btn-danger btn-icon-split" data-toggle="modal" data-target="#modalTolak">
+                            <!-- FIX: Menambahkan support atribut BS4 (data-toggle) dan BS5 (data-bs-toggle) -->
+                            <button type="button" class="btn btn-danger btn-icon-split" 
+                                    data-toggle="modal" data-target="#modalTolak"
+                                    data-bs-toggle="modal" data-bs-target="#modalTolak">
                                 <span class="icon text-white-50"><i class="fas fa-times"></i></span>
                                 <span class="text">Tolak</span>
                             </button>
+
                         </div>
                     <?php else : ?>
-                        <div class="alert alert-secondary mb-0">
+                        <div class="alert alert-secondary mb-0 small">
                             Status: <strong><?= strtoupper($laporan['status']); ?></strong>
                             <?php if($laporan['status'] == 'tolak' && !empty($laporan['catatan_penolakan'])): ?>
-                                <hr>
-                                <small class="text-left d-block"><strong>Catatan:</strong><br><?= esc($laporan['catatan_penolakan']); ?></small>
+                                <hr class="my-2">
+                                <div class="text-left"><strong>Catatan:</strong> <?= esc($laporan['catatan_penolakan']); ?></div>
                             <?php endif; ?>
                         </div>
                     <?php endif; ?>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -143,32 +143,52 @@
     </a>
 </div>
 
-<!-- MODAL TOLAK -->
+<!-- ========================================== -->
+<!-- MODAL POP-UP (Bagian yang membuat tombol Tolak berfungsi) -->
+<!-- ========================================== -->
 <div class="modal fade" id="modalTolak" tabindex="-1" role="dialog" aria-labelledby="modalTolakLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="modalTolakLabel">Tolak Laporan</h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                <h5 class="modal-title" id="modalTolakLabel">Konfirmasi Penolakan</h5>
+                <!-- Tombol Close (Support BS4 & BS5) -->
+                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <!-- Form mengarah ke method tolak di controller -->
+            
             <form action="<?= base_url('petugas/tolak/' . $laporan['id']); ?>" method="post">
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="catatan" class="font-weight-bold">Alasan Penolakan / Catatan Revisi:</label>
-                        <textarea class="form-control" id="catatan" name="catatan_penolakan" rows="4" required placeholder="Contoh: Data tonase tidak sesuai dengan lampiran PDF. Mohon perbaiki."></textarea>
-                        <small class="text-muted">Catatan ini akan muncul di dashboard user.</small>
+                        <label for="catatan" class="font-weight-bold text-gray-800">Alasan Penolakan:</label>
+                        <textarea class="form-control" id="catatan" name="catatan_penolakan" rows="4" required placeholder="Tuliskan alasan penolakan atau revisi di sini..."></textarea>
+                        <small class="text-muted">Catatan ini akan dikirim ke user.</small>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" data-bs-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-danger">Kirim Penolakan</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<!-- Script Diagnosa (Otomatis cek jika modal macet) -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Cek apakah tombol tolak ada
+        var btnTolak = document.querySelector('[data-target="#modalTolak"]');
+        
+        if(btnTolak) {
+            btnTolak.addEventListener('click', function() {
+                // Cek apakah jQuery tersedia (Wajib untuk Bootstrap Modal)
+                if (typeof $ === 'undefined') {
+                    alert('PERINGATAN SISTEM:\nLibrary jQuery tidak ditemukan.\n\nTombol Pop-up tidak bisa terbuka. Mohon periksa file template "header" atau "footer" Anda untuk memastikan script Bootstrap/jQuery sudah dimuat.');
+                }
+            });
+        }
+    });
+</script>
 
 <?= $this->endSection() ?>

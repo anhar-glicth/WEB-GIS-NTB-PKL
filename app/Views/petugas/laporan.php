@@ -38,7 +38,7 @@
                     </a>
                 </td>
                 <td>
-                    <a href="<?= base_url('petugas/detail/' . $row['id']) ?>" class="btn btn-primary btn-sm">
+                    <a href="<?= base_url('petugas/detail_laporan/' . $row['id']) ?>" class="btn btn-primary btn-sm">
                         <i class="fas fa-eye"></i> Lihat Detail
                     </a>
                     <?php if ($row['status'] == 'pending'): ?>
