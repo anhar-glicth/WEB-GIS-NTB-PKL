@@ -1,12 +1,13 @@
-<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar" 
+    style="position: sticky; top: 0; height: 100vh; overflow-y: auto; z-index: 100;"> 
 
-            <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="<?= base_url('/ php') ?>">
-                <div class="sidebar-brand-icon rotate-n-15">
-                 	<i class="fas fa-compass"></i>
-                </div>
-                <div class="sidebar-brand-text mx-3">WEB GIS NTB </div>
-            </a>
+    <!-- Sidebar - Brand -->
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="<?= base_url('/ php') ?>">
+        <div class="sidebar-brand-icon rotate-n-15">
+            <i class="fas fa-compass"></i>
+        </div>
+        <div class="sidebar-brand-text mx-3">WEB GIS NTB </div>
+    </a>
             <?php if(in_groups('admin')): ?>
  <hr class="sidebar-divider">     
     <div class="sidebar-heading">
