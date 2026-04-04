@@ -1,52 +1,50 @@
-# WEB-GIS-NTB-PKL 🌍
+# 🌍 WEB-GIS-NTB-PKL
+Sistem Informasi Geografi (SIG) Pemetaan Wilayah Pertambangan Provinsi NTB berbasis **CodeIgniter 4**, **Leaflet.js**, dan **SB Admin 2**.
 
-Sistem Informasi Geografis (SIG) berbasis web untuk pemetaan dan pendataan wilayah pertambangan di Nusa Tenggara Barat (NTB). Proyek ini dikembangkan menggunakan framework **CodeIgniter 4**, **Myth/Auth** untuk autentikasi, dan **Leaflet.js** untuk fungsi peta.
+---
+
+## 🚀 Cara Menjalankan Aplikasi
+
+Jika Anda ingin menjalankan server lokal dengan command line:
+
+1. **Buka Terminal/CMD** di folder utama proyek.
+2. Ketik perintah berikut:
+   ```bash
+   php spark serve
+   ```
+3. Buka browser di alamat: `http://localhost:8080`
+
+*Atau, jika menggunakan XAMPP secara langsung:*
+Akses via: `http://localhost/WEB-GIS-NTB-PKL/public`
+
+---
+
+## 🔐 Akun & Password (Terdaftar di Database)
+
+Gunakan daftar akun di bawah ini untuk menguji masing-masing fitur sesuai hak aksesnya:
+
+| Role | Username | Email | Password |
+| :--- | :--- | :--- | :--- |
+| **👑 Admin** | `admin` | `admin@admin.com` | `admin123` |
+| **👮 Petugas** | `petugas` | `petugas@petugas.com` | `petugas123` |
+| **🏢 User** | `user` | `user@user.com` | `user123` |
 
 ---
 
 ## 🛠️ Persiapan Database
-1. Pastikan Apache dan MySQL menyala via XAMPP.
-2. Buat database baru di phpMyAdmin dengan nama `gis`.
-3. Impor file `gis.sql` (struktur dasar).
-4. **PENTING**: Jalankan query di file `database_fix.sql` untuk menyinkronkan skema database dengan logika aplikasi terbaru.
+1. Pastikan Apache dan MySQL menyala via **XAMPP**.
+2. Buat database baru di phpMyAdmin dengan nama **`gis`**.
+3. Impor file **`gis.sql`** (struktur dasar).
+4. **PENTING**: Jalankan query di file **`database_fix.sql`** (melalui tab SQL) untuk sinkronisasi data relasi, CMS, dan fitur terbaru.
 
 ---
 
-## 🔐 Akun Akses Default
-Aplikasi ini memiliki 3 level otorisasi:
-- **Admin**: Kelola pengguna dan grup.
-- **Petugas**: Verifikasi laporan tambang & SIG dari user.
-- **User**: Input data profil perusahaan, data teknis tambang, dan poligon wilayah.
-
-*(Gunakan fitur Register untuk membuat akun baru dan sesuaikan role via database/admin panel)*
+## 🗺️ Fitur Utama
+- **SIG Area**: Menggambar poligon wilayah tambang langsung di peta.
+- **CMS Landing Page**: Ganti foto latar dan judul website via Dashboard Admin.
+- **Account Security**: Ganti Profil dan Password mandiri untuk semua Role.
+- **Verification Flow**: Petugas bisa Memberi ACC atau Menolak laporan dengan catatan.
 
 ---
 
-## 🚀 Fitur Utama
-### 1. Sistem Informasi Geografis (SIG)
-- **Input Poligon**: Menggambar area wilayah tambang langsung di peta.
-- **Dinamis Marker**: Menampilkan titik concession pertambangan dari database secara otomatis.
-- **Layer Control**: Pilihan tampilan peta antara Google Streets, Google Satellite, dan OpenStreetMap.
-- **Konversi Otomatis**: Input manual koordinat DMS (Derajat-Menit-Detik) atau via drawing tools.
-
-### 2. Manajemen Data Tambang
-- **Input Teknis**: Data Sumberdaya (Tereka, Terunjuk, Terukur) dan Cadangan (Terkira, Terbukti).
-- **Pelaporan berkas**: Unggah dokumen legalitas (IUP/NIB) dan foto lokasi.
-- **Monitoring Status**: Dashboard pengguna untuk melacak status persetujuan laporan (Pending, ACC, Tolak).
-
-### 3. Panel Petugas
-- **Verifikasi Laporan**: Petugas dapat menyetujui atau menolak laporan.
-- **Catatan Revisi**: Jika ditolak, petugas wajib menyertakan alasan penolakan yang akan tampil di dashboard user.
-- **Download Dokumen**: Fitur unduh berkas laporan user untuk keperluan administrasi offline.
-
----
-
-## 📂 Struktur Folder Penting
-- `app/Controllers/`: Logika utama (Admin, Petugas, User, Home).
-- `app/Views/`: Template antarmuka (SB Admin 2).
-- `public/uploads/`: Folder penyimpanan foto lokasi dan dokumen user (pastikan folder ini writable).
-
----
-
-## ⚖️ Lisensi
-Aplikasi ini dikembangkan untuk tujuan PKL (Praktik Kerja Lapangan) dan pendidikan.
+**Dikembangkan oleh:** Tim PKL - Dinas ESDM Prov. NTB.
