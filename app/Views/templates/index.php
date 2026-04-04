@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -10,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-   <title>WEB GIS NTB></title>
+   <title>WEB GIS NTB</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <!-- Leaflet JS -->
@@ -100,10 +99,7 @@
     <script src="<?= base_url('vendor/jquery-easing/jquery.easing.min.js') ?>"></script>
 
     <!-- Custom scripts for all pages-->
-<script src="<?= base_url(); ?>/js/sb-admin-2.min.js"></script>
- <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-    <script src="<?= base_url('SB_ADMIN/js/scripts.js') ?>"></script>
+<script src="<?= base_url('js/sb-admin-2.min.js') ?>"></script>
 
 </body>
 

@@ -9,19 +9,26 @@ class LaporanModel extends Model
     protected $table = 'laporan';
     protected $primaryKey = 'id';
 
-    // PERBAIKAN: Menambahkan kolom data tambang agar BISA DISIMPAN
+    /**
+     * Field yang diizinkan untuk disimpan ke database.
+     * Mencakup data dokumen, identitas user, status verifikasi, dan data teknis tambang.
+     */
     protected $allowedFields = [
-        // Data Utama
+        // Informasi Dokumen Dasar
         'judul',
         'file',
         'user_id',
         'status',
         
-        // Data Detail Tambang (Wajib ditambahkan disini)
+        // Catatan Verifikasi (Petugas)
+        'catatan_penolakan',
+        'verified_at',
+
+        // Data Teknis Tambang
         'nama_blok',
         'luas_ha',
         
-        // Sumberdaya
+        // Sumberdaya (Resources)
         'sd_tereka_volume',
         'sd_tereka_tonase',
         'sd_terunjuk_volume',
@@ -29,13 +36,13 @@ class LaporanModel extends Model
         'sd_terukur_volume',
         'sd_terukur_tonase',
         
-        // Cadangan
+        // Cadangan (Reserves)
         'cd_terkira_volume',
         'cd_terkira_tonase',
         'cd_terbukti_volume',
         'cd_terbukti_tonase',
         
-        // Produksi
+        // Rencana Produksi & Umur Tambang
         'prod_harian',
         'prod_bulanan',
         'prod_tahunan',
@@ -43,14 +50,16 @@ class LaporanModel extends Model
 
         // Timestamps
         'created_at',
-        'updated_at',
-        'verified_at'
+        'updated_at'
     ];
 
     protected $useTimestamps = true;
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
 
+    /**
+     * Mengambil 5 laporan terbaru dengan data user (Join).
+     */
     public function getLaporanTerbaru($limit = 5)
     {
         return $this->select('laporan.*, users.username, users.email')
@@ -60,16 +69,17 @@ class LaporanModel extends Model
                     ->findAll();
     }
 
+    /**
+     * Menghitung jumlah laporan berdasarkan status (pending, acc, tolak).
+     */
     public function countByStatus($status)
     {
         return $this->where('status', $status)->countAllResults();
     }
 
-    public function insertLaporan($laporan)
-    {
-        return $this->insert($laporan);
-    }
-
+    /**
+     * Mengambil semua laporan dengan status tertentu (Join User).
+     */
     public function getLaporanByStatus($status)
     {
         return $this->select('laporan.*, users.username, users.email')
@@ -79,6 +89,9 @@ class LaporanModel extends Model
                     ->findAll();
     }
 
+    /**
+     * Mengambil detail laporan lengkap berdasarkan ID.
+     */
     public function getDetailLaporan($id)
     {
         return $this->select('laporan.*, users.username, users.email')

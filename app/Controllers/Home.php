@@ -2,320 +2,146 @@
 
 namespace App\Controllers;
 
-use App\Models\LaporanModel; // Diperlukan untuk mengakses model laporan
-use App\Models\ModelKoordinat; // Diperlukan untuk mengakses model koordinat poligon
-use CodeIgniter\Files\File; // Diperlukan untuk penanganan file
+use App\Models\LaporanModel;
+use App\Models\PerusahaanModel;
+use App\Models\ModelKoordinat;
 
 class Home extends BaseController
 {
     /**
-     * Fungsi utama, menangani pengalihan berdasarkan peran pengguna
+     * Halaman Utama / Landing Page
      */
     public function index()
     {
-        // Role-based redirect (prioritas utama)
-        if (in_groups('admin')) {
-            return redirect()->to('/admin');
-        } elseif (in_groups('petugas')) {
-            return redirect()->to('/petugas');
-        } else {
-            return redirect()->to('/user');
-        }
+        $laporanModel = new LaporanModel();
+        $perusahaanModel = new PerusahaanModel();
+        $koordinatModel = new ModelKoordinat();
+
+        // Menyusun data statistik untuk landing page
+        $data = [
+            'judul' => 'Beranda',
+            'stats' => [
+                'total_laporan'     => $laporanModel->countAllResults(),
+                'total_perusahaan'  => $perusahaanModel->countAllResults(),
+                'total_poligon'     => $koordinatModel->countAllResults(),
+            ]
+        ];
+        
+        return view('landing_page', $data);
     }
 
-    // ====================================
-    // FUNGSI-FUNGSI TAMPILAN PETA (USER)
-    // ====================================
-
-    public function viewMaps(): string
+    /**
+     * Pemetaan Seluruh Data (View Maps)
+     */
+    public function viewMaps()
     {
+        $model = new ModelKoordinat();
         $data = [
-            "judul" => "View Maps",
-            "page"  => "v_viewmaps",
+            'judul' => 'Pemetaan Kawasan Pertambangan',
+            'koordinat' => $model->findAll() 
         ];
+
         return view('user/v_viewmaps', $data);
     }
 
-    public function baseMaps(): string
+    /**
+     * Pemetaan berbasis Marker
+     */
+    public function marker()
     {
+        $model = new ModelKoordinat();
         $data = [
-            "judul" => "Base Maps",
-            "page"  => "v_basemaps",
+            'judul' => 'Pemetaan Kawasan Pertambangan (Marker)',
+            'koordinat' => $model->findAll()
         ];
-        return view('user/v_basemaps', $data);
-    }
 
-    public function marker(): string
-    {
-        $data = [
-            "judul" => "Marker",
-            "page"  => "v_marker",
-        ];
         return view('user/v_marker', $data);
     }
 
-    public function poligon(): string
+    /**
+     * Halaman Input Poligon
+     */
+    public function poligon()
     {
         $data = [
-            "judul" => "Input Data Poligon",
-            "page"  => "v_poligon",
+            'judul' => 'Input Kawasan Pertambangan (Poligon)'
         ];
-        // Pastikan file view bernama v_poligon.php ada di folder app/Views/user/
+
         return view('user/v_poligon', $data);
     }
 
-    public function registrasi(): string
-    {
-        return view('auth/registrasi');
-    }
-
-    public function users(): string
-    {
-        return view('users/index');
-    }
-
-    // ====================================
-    // FUNGSI-FUNGSI POLIGON (BARU)
-    // ====================================
-
     /**
-     * Memproses penyimpanan data poligon dinamis (POST).
+     * Simpan Data Poligon & Metadata
      */
     public function simpanPoligon()
     {
         $model = new ModelKoordinat();
-        
-        // Ambil data umum (Header)
-        $companyName = $this->request->getPost('companyName');
-        $locationName = $this->request->getPost('locationName');
-        $permit = $this->request->getPost('permit');
-        
-        // 1. Handle Upload FOTO
-        $foto = $this->request->getFile('foto_lokasi');
-        $namaFoto = null;
-        
-        if ($foto && $foto->isValid() && ! $foto->hasMoved()) {
-            $namaFoto = $foto->getRandomName();
-            $foto->move('uploads/lokasi', $namaFoto); // Simpan ke folder public/uploads/lokasi
-        }
 
-        // 2. Handle Upload DOKUMEN (PDF/DOC)
-        $dokumen = $this->request->getFile('dokumen_pendukung');
-        $namaDokumen = null;
-        
-        if ($dokumen && $dokumen->isValid() && ! $dokumen->hasMoved()) {
-            $namaDokumen = $dokumen->getRandomName();
-            $dokumen->move('uploads/dokumen', $namaDokumen); // Simpan ke folder public/uploads/dokumen
-        }
-
-        // Ambil data array koordinat (karena dinamis)
         $lat_deg = $this->request->getPost('lat_deg');
         $lat_min = $this->request->getPost('lat_min');
         $lat_sec = $this->request->getPost('lat_sec');
         $lat_dir = $this->request->getPost('lat_dir');
-        
+
         $long_deg = $this->request->getPost('long_deg');
         $long_min = $this->request->getPost('long_min');
         $long_sec = $this->request->getPost('long_sec');
         $long_dir = $this->request->getPost('long_dir');
 
-        // Looping untuk menyimpan setiap titik
+        $companyName = $this->request->getPost('companyName');
+        $locationName = $this->request->getPost('locationName');
+        $permit = $this->request->getPost('permit');
+
+        // Handle Upload Foto
+        $fileFoto = $this->request->getFile('foto_lokasi');
+        $namaFoto = "";
+        if ($fileFoto && $fileFoto->isValid() && !$fileFoto->hasMoved()) {
+            $namaFoto = $fileFoto->getRandomName();
+            $fileFoto->move('uploads/lokasi', $namaFoto);
+        }
+
+        // Handle Upload Dokumen
+        $fileDok = $this->request->getFile('dokumen_pendukung');
+        $namaDok = "";
+        if ($fileDok && $fileDok->isValid() && !$fileDok->hasMoved()) {
+            $namaDok = $fileDok->getRandomName();
+            $fileDok->move('uploads/dokumen', $namaDok);
+        }
+
+        // Simpan setiap titik koordinat
         if (is_array($lat_deg)) {
             foreach ($lat_deg as $key => $val) {
-                // Pastikan data tidak kosong sebelum insert
-                if(!empty($lat_deg[$key]) && !empty($long_deg[$key])) {
-                    $dataSimpan = [
-                        'companyName'       => $companyName,
-                        'locationName'      => $locationName,
-                        'permit'            => $permit,
-                        'foto_lokasi'       => $namaFoto,
-                        'dokumen_pendukung' => $namaDokumen,
-                        
-                        // Data Koordinat per baris
+                if(!empty($lat_deg[$key])) {
+                    $model->insert([
                         'latitude_deg'  => $lat_deg[$key],
                         'latitude_min'  => $lat_min[$key],
                         'latitude_sec'  => $lat_sec[$key],
                         'latitude_dir'  => $lat_dir[$key],
-                        
                         'longitude_deg' => $long_deg[$key],
                         'longitude_min' => $long_min[$key],
                         'longitude_sec' => $long_sec[$key],
                         'longitude_dir' => $long_dir[$key],
-                    ];
-
-                    $model->insert($dataSimpan);
+                        'companyName'   => $companyName,
+                        'locationName'  => $locationName,
+                        'permit'        => $permit,
+                        'foto_lokasi'   => $namaFoto,
+                        'dokumen_pendukung' => $namaDok
+                    ]);
                 }
             }
         }
 
-        // Redirect kembali ke halaman poligon dengan pesan sukses
-        return redirect()->to(base_url('Home/poligon'))->with('success', 'Data Koordinat Poligon Berhasil Disimpan!');
+        return redirect()->to(base_url('Home/viewMaps'))->with('success', 'Data Poligon berhasil disimpan.');
     }
 
-
-    // ====================================
-    // FUNGSI-FUNGSI LAPORAN (REPORTING)
-    // ====================================
-    
     /**
-     * BARU: Menampilkan formulir input data tambang.
-     * Ini yang seharusnya dipanggil oleh URI /input-tambang (GET).
+     * Pilihan Basemaps
      */
-    public function lapor(): string
+    public function baseMaps()
     {
         $data = [
-            "judul" => "Input Data Tambang",
-            // Kirim validator agar view bisa menampilkan error jika ada
-            "validation" => \Config\Services::validation() 
-        ];
-        // Pastikan v_input.php ada di app/Views/v_input.php
-        return view('user/v_input', $data); 
-    }
-
-    /**
-     * Menampilkan daftar laporan yang telah disimpan oleh pengguna.
-     * Ini dipetakan ke URI /user/laporan.
-     */
-    public function simpan(): string
-    {
-        $laporanModel = new LaporanModel(); // Menggunakan use statement
-        
-        $data = [
-            "judul" => "Laporan Pertambangan Saya",
-            "laporan" => $laporanModel
-                            ->join('users', 'users.id = laporan.user_id')
-                            ->select('laporan.*, users.username')
-                            ->findAll()
-        ];
-        // Pastikan v_laporan.php ada di app/Views/user/v_laporan.php
-        return view('user/v_laporan', $data);
-    }
-
-    /**
-     * Mengelola pengunggahan dokumen/file bukti (POST).
-     */
-    public function dokumen()
-    {
-        // Pastikan request adalah POST
-        if (!$this->request->is('post')) {
-            return redirect()->back()->with('error', 'Metode request tidak valid.');
-        }
-
-        $validation = \Config\Services::validation();
-        $rules = [
-            'judul' => 'required',
-            'file'  => 'uploaded[file]|ext_in[file,pdf,doc,docx]|max_size[file,10240]'
-        ];
-        
-        // Jika validasi gagal, kembalikan ke halaman laporan dengan error
-        if (!$this->validate($rules)) {
-            // Asumsi v_laporan adalah halaman tempat form upload berada
-            return view('user/v_laporan', ['validation' => $this->validator]);
-        }
-
-        $file = $this->request->getFile('file');
-        $newName = $file->getRandomName();
-        
-        // Pindahkan file ke folder writable/uploads
-        $file->move(WRITEPATH . 'uploads', $newName);
-
-        $laporanModel = new LaporanModel();
-        $laporanModel->save([
-            'judul'     => $this->request->getPost('judul'),
-            'file'      => $newName,
-            'user_id'   => user_id(), // Asumsi menggunakan user_id() dari autentikasi
-            'status'    => 'pending'
-        ]);
-
-        // PERBAIKAN REDIRECT: Mengalihkan ke rute /user/laporan (yang memanggil simpan())
-        return redirect()->to(base_url('user/laporan'))->with('success', 'Dokumen berhasil diunggah.');
-    }
-
-    /**
-     * Mengelola penyimpanan data numerik formulir input tambang (POST).
-     * Dipetakan ke URI /user/laporan/insertLaporan.
-     */
-    public function insertLaporan()
-    {
-        // Pastikan request adalah POST
-        if (!$this->request->is('post')) {
-            return redirect()->back()->with('error', 'Metode request tidak valid.');
-        }
-
-        $laporanModel = new LaporanModel();
-        
-        // ===================================
-        // 1. DEFINISI RULES VALIDASI
-        // ===================================
-        $rules = [
-            // Informasi Umum
-            'nama_blok' => 'required|max_length[255]',
-            'luas_ha'   => 'required|numeric|greater_than_equal_to[0]',
-            
-            // Sumberdaya & Cadangan (dibiarkan kosong tapi harus angka jika diisi)
-            'sd_tereka_volume'      => 'permit_empty|numeric|greater_than_equal_to[0]',
-            'sd_tereka_tonase'      => 'permit_empty|numeric|greater_than_equal_to[0]',
-            'sd_terunjuk_volume'    => 'permit_empty|numeric|greater_than_equal_to[0]',
-            'sd_terunjuk_tonase'    => 'permit_empty|numeric|greater_than_equal_to[0]',
-            'sd_terukur_volume'     => 'permit_empty|numeric|greater_than_equal_to[0]',
-            'sd_terukur_tonase'     => 'permit_empty|numeric|greater_than_equal_to[0]',
-            
-            'cd_terkira_volume'     => 'permit_empty|numeric|greater_than_equal_to[0]',
-            'cd_terkira_tonase'     => 'permit_empty|numeric|greater_than_equal_to[0]',
-            'cd_terbukti_volume'    => 'permit_empty|numeric|greater_than_equal_to[0]',
-            'cd_terbukti_tonase'    => 'permit_empty|numeric|greater_than_equal_to[0]',
-            
-            // Rencana Produksi
-            'prod_harian'           => 'permit_empty|numeric|greater_than_equal_to[0]',
-            'prod_bulanan'          => 'permit_empty|numeric|greater_than_equal_to[0]',
-            'prod_tahunan'          => 'permit_empty|numeric|greater_than_equal_to[0]',
-            'umur_tambang'          => 'permit_empty|numeric|greater_than_equal_to[0]',
+            'judul' => 'Pilihan Basemaps (SIG)'
         ];
 
-        // ===================================
-        // 2. JALANKAN VALIDASI
-        // ===================================
-        if (!$this->validate($rules)) {
-            // Jika validasi gagal, tampilkan view form lagi dengan pesan error dan data lama
-            return view('user/v_input', [
-                'validation' => $this->validator
-            ]);
-        }
-
-        // ===================================
-        // 3. AMBIL DAN SIAPKAN DATA
-        // ===================================
-        $data_input = [
-            'nama_blok'             => $this->request->getPost('nama_blok'),
-            'luas_ha'               => $this->request->getPost('luas_ha'),
-            'sd_tereka_volume'      => $this->request->getPost('sd_tereka_volume'),
-            'sd_tereka_tonase'      => $this->request->getPost('sd_tereka_tonase'),
-            'sd_terunjuk_volume'    => $this->request->getPost('sd_terunjuk_volume'),
-            'sd_terunjuk_tonase'    => $this->request->getPost('sd_terunjuk_tonase'),
-            'sd_terukur_volume'     => $this->request->getPost('sd_terukur_volume'),
-            'sd_terukur_tonase'     => $this->request->getPost('sd_terukur_tonase'),
-            'cd_terkira_volume'     => $this->request->getPost('cd_terkira_volume'),
-            'cd_terkira_tonase'     => $this->request->getPost('cd_terkira_tonase'),
-            'cd_terbukti_volume'    => $this->request->getPost('cd_terbukti_volume'),
-            'cd_terbukti_tonase'    => $this->request->getPost('cd_terbukti_tonase'),
-            'prod_harian'           => $this->request->getPost('prod_harian'),
-            'prod_bulanan'          => $this->request->getPost('prod_bulanan'),
-            'prod_tahunan'          => $this->request->getPost('prod_tahunan'),
-            'umur_tambang'          => $this->request->getPost('umur_tambang'),
-            
-            'user_id' => user_id(), // user_id() otomatis dari sistem autentikasi
-            'status'  => 'pending', // Status awal saat data di-submit
-        ];
-
-        // ===================================
-        // 4. SIMPAN DATA KE DATABASE
-        // ===================================
-        $laporanModel->save($data_input);
-
-        // ===================================
-        // 5. BERIKAN RESPON
-        // ===================================
-        // Redirect ke halaman daftar laporan
-        return redirect()->to(base_url('user/input-tambang'))->with('success', 'Data Tambang berhasil disimpan!');
+        return view('user/v_basemaps', $data);
     }
 }

@@ -91,7 +91,7 @@ public function updateProfile()
         'email'    => $this->request->getPost('email')
     ]);
 
-    return redirect()->to('/admin')->with('message', 'User berhasil ditambahkan!');
+    return redirect()->to('/admin')->with('message', 'Profil berhasil diperbarui!');
 
 }
 public function createUser()

@@ -18,7 +18,6 @@ class Petugas extends BaseController
 
     /**
      * Dashboard Petugas
-     * Menampilkan ringkasan dan laporan terbaru
      */
     public function index()
     {
@@ -64,9 +63,6 @@ class Petugas extends BaseController
         return view('petugas/laporan', $data);
     }
 
-    /**
-     * Detail laporan + identitas perusahaan
-     */
     public function detail($id)
     {
         $laporan = $this->laporanModel
@@ -76,7 +72,6 @@ class Petugas extends BaseController
             ->first();
 
         if (!$laporan) {
-            // Menggunakan redirect back agar lebih ramah user daripada throw exception
             return redirect()->back()->with('error', 'Laporan tidak ditemukan.');
         }
 
@@ -105,16 +100,14 @@ class Petugas extends BaseController
 
         $this->laporanModel->update($id, [
             'status' => 'acc',
-            'verified_at' => date('Y-m-d H:i:s'),
-            // Hapus catatan penolakan jika sebelumnya pernah ditolak lalu diperbaiki dan di-acc
-            'catatan_penolakan' => null 
+            'verified_at' => date('Y-m-d H:i:s')
         ]);
 
         return redirect()->to(base_url('petugas/laporan'))->with('success', 'Laporan berhasil disetujui.');
     }
 
     /**
-     * Tolak laporan dengan catatan
+     * Tolak laporan
      */
     public function tolak($id)
     {
@@ -123,21 +116,19 @@ class Petugas extends BaseController
             return redirect()->back()->with('error', 'Laporan tidak ditemukan.');
         }
 
-        // UPDATE: Mengambil catatan dari input POST (dari Modal di View)
         $catatan = $this->request->getPost('catatan_penolakan');
 
-        // Validasi: Pastikan ada alasan penolakan
         if (empty($catatan)) {
-            return redirect()->back()->with('error', 'Wajib menyertakan alasan penolakan atau catatan revisi.');
+            return redirect()->back()->with('error', 'Wajib menyertakan alasan penolakan.');
         }
 
         $this->laporanModel->update($id, [
             'status' => 'tolak',
-            'catatan_penolakan' => $catatan, // Simpan alasan penolakan
+            'catatan_penolakan' => $catatan,
             'verified_at' => date('Y-m-d H:i:s')
         ]);
 
-        return redirect()->to(base_url('petugas/laporan'))->with('success', 'Laporan ditolak. Catatan revisi telah dikirim ke pengguna.');
+        return redirect()->to(base_url('petugas/laporan'))->with('success', 'Laporan ditolak.');
     }
 
     /**
@@ -154,66 +145,46 @@ class Petugas extends BaseController
         $filePath = WRITEPATH . 'uploads/' . $laporan['file'];
 
         if (!file_exists($filePath)) {
-            // Coba cek juga di folder public/uploads jika file tidak ada di writable
             $publicPath = FCPATH . 'uploads/' . $laporan['file'];
             if (file_exists($publicPath)) {
                 return $this->response->download($publicPath, null);
             }
-            
-            return redirect()->back()->with('error', 'File fisik tidak ditemukan di server.');
+            return redirect()->back()->with('error', 'File tidak ditemukan.');
         }
 
         return $this->response->download($filePath, null);
     }
 
     /**
-     * Menampilkan laporan pending
-     */
-    public function pending()
-    {
-        $data = [
-            'judul'   => 'Laporan Pending',
-            'laporan' => $this->laporanModel
-                ->where('status', 'pending')
-                ->join('users', 'users.id = laporan.user_id', 'left')
-                ->select('laporan.*, users.username, users.email')
-                ->orderBy('laporan.created_at', 'DESC')
-                ->findAll(),
-        ];
-
-        return view('petugas/laporan_pending', $data);
-    }
-    
-    /**
-     * Menampilkan daftar SEMUA identitas perusahaan (Untuk Petugas)
+     * Menampilkan daftar identitas perusahaan (Untuk Petugas)
      */
     public function identitas_perusahaan()
     {
-        $model = new PerusahaanModel();
-        $data['perusahaan'] = $model->findAll();
+        $data = [
+            'judul' => 'Daftar Identitas Perusahaan',
+            'perusahaan' => $this->perusahaanModel->findAll()
+        ];
 
         return view('petugas/identitas_perusahaan', $data);
     }
 
     /**
-     * Metode proxy untuk menampilkan daftar semua perusahaan.
+     * Melihat detail perusahaan tertentu bagi petugas
      */
-    public function detailPerusahaan()
+    public function detailPerusahaan($id)
     {
-        return $this->identitas_perusahaan();
-    }
-    
-    public function simpan_identitas()
-    {
-        $model = new PerusahaanModel();
+        $perusahaan = $this->perusahaanModel->find($id);
+        
+        if (!$perusahaan) {
+            return redirect()->back()->with('error', 'Data perusahaan tidak ditemukan.');
+        }
 
         $data = [
-            'nama' => $this->request->getPost('nama'),
-            'alamat' => $this->request->getPost('alamat'),
-            'telepon' => $this->request->getPost('telepon'),
+            'judul' => 'Detail Perusahaan',
+            'perusahaan' => $perusahaan
         ];
 
-        $model->insert($data);
-        return redirect()->to(base_url('petugas/identitas_perusahaan'))->with('success', 'Data berhasil disimpan!');
+        // Petugas bisa meminjam view detail milik user atau punya sendiri
+        return view('user/detail-perusahaan', $data); 
     }
 }

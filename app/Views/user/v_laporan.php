@@ -16,9 +16,7 @@
         </div>
     <?php endif; ?>
 
-   <?php helper('form'); ?>
 
-<form action="<?= base_url('Laporan/insertLaporan') ?>" method="post" enctype="multipart/form-data">
 
     <?= csrf_field() ?>
 
