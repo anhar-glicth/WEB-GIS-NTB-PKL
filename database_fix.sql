@@ -13,7 +13,7 @@ ADD COLUMN `nama_blok` VARCHAR(255) NULL AFTER `user_id`,
 ADD COLUMN `luas_ha` FLOAT NULL AFTER `nama_blok`,
 ADD COLUMN `sd_tereka_volume` FLOAT DEFAULT 0 AFTER `luas_ha`,
 ADD COLUMN `sd_tereka_tonase` FLOAT DEFAULT 0 AFTER `sd_tereka_volume`,
-ADD COLUMN `sd_terunjuk_volume` FLOAT DEFAULT 0 AFTER `sd_tereka_tonase`,
+ADD COLUMN `sd_terunjuk_volume" FLOAT DEFAULT 0 AFTER `sd_tereka_tonase`,
 ADD COLUMN `sd_terunjuk_tonase` FLOAT DEFAULT 0 AFTER `sd_terunjuk_volume`,
 ADD COLUMN `sd_terukur_volume` FLOAT DEFAULT 0 AFTER `sd_terunjuk_tonase`,
 ADD COLUMN `sd_terukur_tonase` FLOAT DEFAULT 0 AFTER `sd_terukur_volume`,
@@ -66,8 +66,22 @@ CREATE TABLE IF NOT EXISTS `inputdatatambang` (
   `cd_terbukti_tonase` FLOAT DEFAULT 0,
   `prod_harian` FLOAT DEFAULT 0,
   `prod_bulanan` FLOAT DEFAULT 0,
-  `prod_tahunan` FLOAT DEFAULT 0,
+  `prod_tahunan" FLOAT DEFAULT 0,
   `umur_tambang` INT NULL,
   `created_at` DATETIME NULL,
   `updated_at` DATETIME NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 5. CREATE TABLE: web_settings (Pengaturan visual website)
+CREATE TABLE IF NOT EXISTS `web_settings` (
+  `id` INT(11) AUTO_INCREMENT PRIMARY KEY,
+  `setting_key` VARCHAR(100) UNIQUE NOT NULL,
+  `setting_value` TEXT NULL,
+  `created_at` DATETIME NULL,
+  `updated_at` DATETIME NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Insert default values (Foto awal landing page)
+INSERT IGNORE INTO `web_settings` (`setting_key`, `setting_value`) VALUES 
+('site_name', 'WEB-GIS NTB PKL'),
+('hero_image', 'https://images.unsplash.com/photo-1578321272176-b7bbc0679853?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');

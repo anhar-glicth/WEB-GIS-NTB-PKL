@@ -96,4 +96,50 @@ class Admin extends BaseController
 
         return redirect()->to('/admin/profile')->with('message', 'Profil & Password Admin berhasil diperbarui!');
     }
+
+    /**
+     * CMS: PENGATURAN LANDING PAGE
+     */
+    public function settings()
+    {
+        $data['title'] = 'Web Site Settings';
+        
+        $settingsBuilder = $this->db->table('web_settings');
+        $data['settings'] = $settingsBuilder->get()->getResultArray();
+        
+        // Transform to key-value
+        $kvSettings = [];
+        foreach ($data['settings'] as $s) {
+            $kvSettings[$s['setting_key']] = $s['setting_value'];
+        }
+        $data['kv'] = $kvSettings;
+
+        return view('admin/settings', $data);
+    }
+
+    /**
+     * UPDATE CMS SETTINGS
+     */
+    public function updateSettings()
+    {
+        $settingsBuilder = $this->db->table('web_settings');
+
+        // Update Site Name
+        $siteName = $this->request->getPost('site_name');
+        if ($siteName) {
+            $settingsBuilder->where('setting_key', 'site_name')->update(['setting_value' => $siteName]);
+        }
+
+        // Handle Hero Image Upload
+        $file = $this->request->getFile('hero_image');
+        if ($file && $file->isValid() && !$file->hasMoved()) {
+            $newName = $file->getRandomName();
+            $file->move('uploads/web/', $newName);
+            
+            // Simpan nama file baru ke database
+            $settingsBuilder->where('setting_key', 'hero_image')->update(['setting_value' => base_url('uploads/web/' . $newName)]);
+        }
+
+        return redirect()->to('/admin/settings')->with('message', 'Pengaturan tampilan berhasil diperbarui!');
+    }
 }

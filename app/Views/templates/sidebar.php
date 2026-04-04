@@ -46,6 +46,12 @@
             <span>Edit Profil</span>
         </a>
     </li>
+    <li class="nav-item">
+        <a class="nav-link" href="<?= base_url('admin/settings') ?>">
+            <i class="fas fa-desktop text-success"></i>
+            <span class="text-success font-weight-bold">Pengaturan Halaman Awal</span>
+        </a>
+    </li>
     <?php endif; ?>
 
     <!-- ===================== USER MENU ===================== -->

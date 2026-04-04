@@ -9,7 +9,7 @@ use App\Models\ModelKoordinat;
 class Home extends BaseController
 {
     /**
-     * Halaman Utama / Landing Page
+     * Halaman Depan (Landing Page) - Dinamis
      */
     public function index()
     {
@@ -17,131 +17,116 @@ class Home extends BaseController
         $perusahaanModel = new PerusahaanModel();
         $koordinatModel = new ModelKoordinat();
 
-        // Menyusun data statistik untuk landing page
+        // 1. Ambil Statistik
         $data = [
-            'judul' => 'Beranda',
-            'stats' => [
-                'total_laporan'     => $laporanModel->countAllResults(),
-                'total_perusahaan'  => $perusahaanModel->countAllResults(),
-                'total_poligon'     => $koordinatModel->countAllResults(),
-            ]
+            'totalLaporan' => $laporanModel->countAllResults(),
+            'totalPerusahaan' => $perusahaanModel->countAllResults(),
+            'totalTitik' => $koordinatModel->countAllResults(),
         ];
+
+        // 2. Ambil Pengaturan Web (CMS)
+        $db = \Config\Database::connect();
+        $settingsBuilder = $db->table('web_settings');
+        $settings = $settingsBuilder->get()->getResultArray();
         
+        // Default values jika database kosong
+        $data['site_name'] = 'WEB-GIS NTB PKL';
+        $data['hero_image'] = 'https://images.unsplash.com/photo-1578321272176-b7bbc0679853?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80';
+
+        foreach ($settings as $s) {
+            if ($s['setting_key'] == 'site_name') $data['site_name'] = $s['setting_value'];
+            if ($s['setting_key'] == 'hero_image') $data['hero_image'] = $s['setting_value'];
+        }
+
         return view('landing_page', $data);
     }
 
     /**
-     * Pemetaan Seluruh Data (View Maps)
+     * View Maps (Halaman Peta Publik)
      */
     public function viewMaps()
     {
         $model = new ModelKoordinat();
         $data = [
-            'judul' => 'Pemetaan Kawasan Pertambangan',
-            'koordinat' => $model->findAll() 
+            'title' => 'Visualisasi Peta Wilayah',
+            'koordinat' => $model->findAll()
         ];
-
         return view('user/v_viewmaps', $data);
     }
 
     /**
-     * Pemetaan berbasis Marker
+     * Marker (List Data Marker)
      */
     public function marker()
     {
         $model = new ModelKoordinat();
         $data = [
-            'judul' => 'Pemetaan Kawasan Pertambangan (Marker)',
+            'title' => 'Daftar Marker Wilayah',
             'koordinat' => $model->findAll()
         ];
-
         return view('user/v_marker', $data);
     }
 
     /**
-     * Halaman Input Poligon
+     * Base Maps
      */
-    public function poligon()
+    public function baseMaps()
     {
-        $data = [
-            'judul' => 'Input Kawasan Pertambangan (Poligon)'
-        ];
-
-        return view('user/v_poligon', $data);
+        return view('user/v_basemaps', ['title' => 'Base Maps Selection']);
     }
 
     /**
-     * Simpan Data Poligon & Metadata
+     * Simpan Poligon Data SIG
      */
     public function simpanPoligon()
     {
         $model = new ModelKoordinat();
+        
+        $latDeg = $this->request->getPost('lat_deg');
+        $latMin = $this->request->getPost('lat_min');
+        $latSec = $this->request->getPost('lat_sec');
+        $latDir = $this->request->getPost('lat_dir');
+        
+        $lngDeg = $this->request->getPost('long_deg');
+        $lngMin = $this->request->getPost('long_min');
+        $lngSec = $this->request->getPost('long_sec');
+        $lngDir = $this->request->getPost('long_dir');
 
-        $lat_deg = $this->request->getPost('lat_deg');
-        $lat_min = $this->request->getPost('lat_min');
-        $lat_sec = $this->request->getPost('lat_sec');
-        $lat_dir = $this->request->getPost('lat_dir');
-
-        $long_deg = $this->request->getPost('long_deg');
-        $long_min = $this->request->getPost('long_min');
-        $long_sec = $this->request->getPost('long_sec');
-        $long_dir = $this->request->getPost('long_dir');
-
-        $companyName = $this->request->getPost('companyName');
-        $locationName = $this->request->getPost('locationName');
-        $permit = $this->request->getPost('permit');
-
-        // Handle Upload Foto
+        // Handle Foto Upload
         $fileFoto = $this->request->getFile('foto_lokasi');
-        $namaFoto = "";
+        $namaFoto = null;
         if ($fileFoto && $fileFoto->isValid() && !$fileFoto->hasMoved()) {
             $namaFoto = $fileFoto->getRandomName();
-            $fileFoto->move('uploads/lokasi', $namaFoto);
+            $fileFoto->move('uploads/lokasi/', $namaFoto);
         }
 
-        // Handle Upload Dokumen
-        $fileDok = $this->request->getFile('dokumen_pendukung');
-        $namaDok = "";
-        if ($fileDok && $fileDok->isValid() && !$fileDok->hasMoved()) {
-            $namaDok = $fileDok->getRandomName();
-            $fileDok->move('uploads/dokumen', $namaDok);
-        }
-
-        // Simpan setiap titik koordinat
-        if (is_array($lat_deg)) {
-            foreach ($lat_deg as $key => $val) {
-                if(!empty($lat_deg[$key])) {
-                    $model->insert([
-                        'latitude_deg'  => $lat_deg[$key],
-                        'latitude_min'  => $lat_min[$key],
-                        'latitude_sec'  => $lat_sec[$key],
-                        'latitude_dir'  => $lat_dir[$key],
-                        'longitude_deg' => $long_deg[$key],
-                        'longitude_min' => $long_min[$key],
-                        'longitude_sec' => $long_sec[$key],
-                        'longitude_dir' => $long_dir[$key],
-                        'companyName'   => $companyName,
-                        'locationName'  => $locationName,
-                        'permit'        => $permit,
-                        'foto_lokasi'   => $namaFoto,
-                        'dokumen_pendukung' => $namaDok
-                    ]);
-                }
+        if (is_array($latDeg)) {
+            foreach ($latDeg as $key => $value) {
+                $model->insert([
+                    'companyName'    => $this->request->getPost('companyName'),
+                    'locationName'   => $this->request->getPost('locationName'),
+                    'permit'         => $this->request->getPost('permit'),
+                    'latitude_deg'   => $latDeg[$key],
+                    'latitude_min'   => $latMin[$key],
+                    'latitude_sec'   => $latSec[$key],
+                    'latitude_dir'   => $latDir[$key],
+                    'longitude_deg'  => $lngDeg[$key],
+                    'longitude_min'  => $lngMin[$key],
+                    'longitude_sec'  => $lngSec[$key],
+                    'longitude_dir'  => $lngDir[$key],
+                    'foto_lokasi'    => $namaFoto
+                ]);
             }
         }
 
-        return redirect()->to(base_url('Home/viewMaps'))->with('success', 'Data Poligon berhasil disimpan.');
+        return redirect()->to(base_url('Home/viewMaps'))->with('message', 'Data Koordinat Berhasil Disimpan!');
     }
 
     /**
-     * Pilihan Basemaps
+     * Poligon view wrapper
      */
-    public function baseMaps()
+    public function poligon()
     {
-        $data = [
-            'judul' => 'Pilihan Basemaps (SIG)'
-        ];
-
-        return view('user/v_basemaps', $data);
+        return view('user/v_poligon', ['title' => 'Input Poligon Baru']);
     }
 }
