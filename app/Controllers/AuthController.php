@@ -248,10 +248,12 @@ class AuthController extends Controller
                 ->with('message', lang('Auth.activationSuccess'));
         }
 
-        // Success!
+        // --- AUTO-LOGIN & LANGSUNG KE DASHBOARD ---
+        $this->auth->login($user);
+
         return redirect()
-            ->route('login')
-            ->with('message', lang('Auth.registerSuccess'));
+            ->to(base_url('user'))
+            ->with('message', 'Registrasi Berhasil! Selamat datang di Dashboard Sistem.');
     }
 
     // --------------------------------------------------------------------

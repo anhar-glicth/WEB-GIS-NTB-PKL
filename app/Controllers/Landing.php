@@ -36,13 +36,36 @@ class Landing extends BaseController
             'total_poligon'    => $koordinatModel->countAllResults(),  // Menghitung baris tabel koordinat
         ];
 
-        // 4. Kirim data ke View
+        $koordinatRaw = $koordinatModel->whereIn('status', ['ACC', 'Disetujui'])->findAll();
+        $koordinatFix = [];
+
+        foreach ($koordinatRaw as $k) {
+            // KONVERSI DMS KE DESIMAL (DD = DEG + MIN/60 + SEC/3600)
+            $lat = (float)$k['latitude_deg'] + ((float)$k['latitude_min'] / 60) + ((float)$k['latitude_sec'] / 3600);
+            $lng = (float)$k['longitude_deg'] + ((float)$k['longitude_min'] / 60) + ((float)$k['longitude_sec'] / 3600);
+            
+            // Handle Arah (S/W = Negatif)
+            if (strtoupper($k['latitude_dir'] ?? '') == 'S') $lat *= -1;
+            if (strtoupper($k['longitude_dir'] ?? '') == 'W') $lng *= -1;
+
+            $k['latitude_decimal'] = $lat;
+            $k['longitude_decimal'] = $lng;
+            $koordinatFix[] = $k;
+        }
+
         $config = config('Auth');
 
         $data = [
-            'judul'  => 'Web GIS NTB - Creative Solutions',
-            'config' => $config, 
-            'stats'  => $stats // <--- Variabel ini wajib dikirim agar View tidak menampilkan 0
+            'judul'           => 'SIG-TAMBANG NTB',
+            'site_name'       => 'SIG-TAMBANG NTB',
+            'hero_image'      => base_url('img/image.png'),
+            'totalLaporan'    => $stats['total_laporan'],
+            'totalPerusahaan' => $stats['total_perusahaan'],
+            'totalTitik'      => $stats['total_poligon'],
+            'config'          => $config, 
+            'stats'           => $stats,
+            // KIRIM DATA YANG SUDAH DIKONVERSI
+            'koordinat'       => $koordinatFix,
         ];
 
         return view('landing_page', $data);

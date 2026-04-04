@@ -21,6 +21,8 @@ class Home extends BaseController
             'totalLaporan' => $laporanModel->countAllResults(),
             'totalPerusahaan' => $perusahaanModel->countAllResults(),
             'totalTitik' => $koordinatModel->countAllResults(),
+            // Ambil koordinat yang sudah di-ACC untuk ditampilkan di peta publik
+            'koordinat' => $koordinatModel->where('status', 'Disetujui')->findAll(),
         ];
 
         $db = \Config\Database::connect();
@@ -38,15 +40,13 @@ class Home extends BaseController
         return view('landing_page', $data);
     }
 
-    /**
-     * View Maps (Halaman Peta Publik)
-     */
     public function viewMaps()
     {
         $model = new ModelKoordinat();
         $data = [
             'title' => 'Visualisasi Peta Wilayah',
-            'koordinat' => $model->findAll()
+            // HANYA MUNCULKAN YANG SUDAH DI-ACC PETUGAS
+            'koordinat' => $model->where('status', 'Disetujui')->findAll()
         ];
         return view('user/v_viewmaps', $data);
     }
@@ -59,7 +59,8 @@ class Home extends BaseController
         $model = new ModelKoordinat();
         $data = [
             'title' => 'Daftar Marker Wilayah',
-            'koordinat' => $model->findAll()
+            // HANYA MUNCULKAN YANG SUDAH DI-ACC PETUGAS
+            'koordinat' => $model->where('status', 'Disetujui')->findAll()
         ];
         return view('user/v_marker', $data);
     }
@@ -126,6 +127,11 @@ class Home extends BaseController
      */
     public function poligon()
     {
-        return view('user/v_poligon', ['title' => 'Input Poligon Baru']);
+        $model = new ModelKoordinat();
+        $data = [
+            'title' => 'Input Poligon Baru',
+            'koordinat' => $model->findAll()
+        ];
+        return view('user/v_poligon', $data);
     }
 }

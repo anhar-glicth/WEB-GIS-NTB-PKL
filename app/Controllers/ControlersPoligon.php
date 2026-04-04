@@ -9,12 +9,24 @@ class ControlersPoligon extends BaseController
 {
     public function index()
     {
+        $model = new ModelKoordinat();
         $data = [
             "judul" => "Input Data Poligon",
             "page"  => "v_poligon", 
+            "koordinat" => $model->findAll() // AMBIL DATA LAMA SEBAGAI REFERENSI
         ];
         // Pastikan view ini sesuai dengan nama file Anda (v_poligon.php atau poligon_view.php)
         return view('user/poligon_view', $data);
+    }
+
+    public function history()
+    {
+        $model = new ModelKoordinat();
+        $data = [
+            "judul" => "Riwayat Data Poligon",
+            "koordinat" => $model->where('user_id', user_id())->findAll() // HANYA PUNYA SAYA
+        ];
+        return view('user/poligon_history', $data);
     }
 
     public function simpan()
@@ -23,6 +35,7 @@ class ControlersPoligon extends BaseController
             return redirect()->to(base_url('poligon'))->with('error', 'Akses tidak valid.');
         }
 
+        $userId = user_id(); // AMBIL ID SAYA
         $model = new ModelKoordinat();
         
         // --- 1. Ambil Data Header ---
@@ -61,13 +74,13 @@ class ControlersPoligon extends BaseController
         // --- 4. Proses Insert ---
         if (is_array($lat_deg)) {
             foreach ($lat_deg as $key => $val) {
-                // Cek data tidak kosong
                 if(isset($lat_deg[$key]) && $lat_deg[$key] !== '') {
                     
                     $dataSimpan = [
+                        'user_id'           => $userId, // SIMPAN SIAPA PEMILIKNYA
                         'companyName'       => $companyName,
                         'locationName'      => $locationName,
-                        'permit'            => $permit, // Biarkan string, database akan handle conversion
+                        'permit'            => $permit,
                         'foto_lokasi'       => $namaFoto,
                         'dokumen_pendukung' => $namaDokumen,
                         
@@ -82,31 +95,30 @@ class ControlersPoligon extends BaseController
                         'longitude_dir'     => $long_dir[$key],
                     ];
 
-                    // INSERT & CEK ERROR DB LANGSUNG
                     if (!$model->insert($dataSimpan)) {
-                        // Ambil error langsung dari driver database
-                        $dbError = $model->db->error(); 
-                        
-                        // TAMPILKAN ERROR KE LAYAR
-                        dd([
-                            'STATUS' => 'GAGAL MENYIMPAN KE DATABASE',
-                            'Pesan Error Database' => $dbError['message'],
-                            'Kode Error' => $dbError['code'],
-                            'Query Terakhir' => $model->getLastQuery() ? $model->getLastQuery()->getQuery() : 'N/A',
-                            'Data yang dikirim' => $dataSimpan,
-                            'Error Validasi Model' => $model->errors()
-                        ]);
+                        return redirect()->to(base_url('poligon'))->with('error', 'Gagal menyimpan ke database.');
                     }
-                    
                     $berhasil = true;
                 }
             }
         }
 
         if ($berhasil) {
-            return redirect()->to(base_url('poligon'))->with('success', 'Data Berhasil Disimpan!');
+            return redirect()->to(base_url('poligon/riwayat'))->with('success', 'Data Berhasil Disimpan!');
         } else {
             return redirect()->to(base_url('poligon'))->with('error', 'Gagal menyimpan. Pastikan input terisi.');
         }
+    }
+
+    public function hapusByPermit($permit)
+    {
+        $model = new ModelKoordinat();
+        
+        // HANYA hapus JIKA permit tersebut adalah MILIK SAYA (user_id sama)
+        $model->where('permit', $permit)
+              ->where('user_id', user_id()) // SECURITY CHECK!
+              ->delete();
+              
+        return redirect()->back()->with('success', 'Seluruh area poligon berhasil dihapus!');
     }
 }

@@ -22,8 +22,16 @@
                         </div>
                     <?php endif; ?>
 
-                    <form action="<?= base_url('petugas/updateProfile') ?>" method="POST" class="user">
+                    <form action="<?= base_url('petugas/updateProfile') ?>" method="POST" class="user" enctype="multipart/form-data">
                         <?= csrf_field() ?>
+                        
+                        <!-- UPLOAD FOTO -->
+                        <div class="form-group mb-4">
+                            <label class="small font-weight-bold ml-1 text-primary">Photo Profile</label>
+                            <input type="file" name="user_image" class="form-control form-control-sm border-left-info py-1 px-3 h-auto" accept="image/*">
+                            <small class="text-muted ml-1 font-italic">Format: JPG, PNG. Max: 1MB.</small>
+                        </div>
+                        <hr>
                         <div class="form-group mb-4">
                             <label class="small font-weight-bold ml-1">Username (Display Name)</label>
                             <input type="text" name="username" class="form-control form-control-user form-control-sm border-left-primary py-4 px-3 h6" value="<?= old('username', $user->username) ?>" required>

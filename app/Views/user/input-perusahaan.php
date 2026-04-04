@@ -10,9 +10,12 @@
         </div>
     <?php endif; ?>
 
-    <?php if (isset($validation)): ?>
-        <div class="alert alert-danger">
-            <?= $validation->listErrors() ?>
+    <?php if (isset($validation) && $validation->getErrors()): ?>
+        <div class="alert alert-danger shadow-sm border-0 small rounded-lg">
+            <i class="fas fa-exclamation-circle mr-2"></i> Mohon lengkapi data berikut:
+            <div class="mt-2 pl-4">
+                <?= $validation->listErrors() ?>
+            </div>
         </div>
     <?php endif; ?>
 
@@ -148,11 +151,18 @@
             </div>
         </div>
 
-        <!-- TOMBOL -->
-        <div class="mb-4">
-            <button type="submit" class="btn btn-primary">Simpan Data</button>
-            <button type="reset" class="btn btn-secondary">Reset</button>
-            <button type="button" class="btn btn-success">Download Excel</button>
+        <!-- TOMBOL AKSI -->
+        <div class="card shadow mb-5 border-0 rounded-lg">
+            <div class="card-body d-flex flex-wrap align-items-center justify-content-between py-3">
+                <div class="mb-2 mb-md-0">
+                    <button type="submit" class="btn btn-primary px-4 shadow-sm font-weight-bold">
+                        <i class="fas fa-save mr-1"></i> Simpan Data Perusahaan
+                    </button>
+                    <button type="reset" class="btn btn-light px-4 border">
+                        <i class="fas fa-redo mr-1"></i> Reset
+                    </button>
+                </div>
+            </div>
         </div>
 
     </form>

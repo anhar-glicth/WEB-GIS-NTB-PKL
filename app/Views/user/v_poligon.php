@@ -79,6 +79,55 @@
     });
     map.addControl(drawControl);
 
+    // --- RENDER DATA LAMA SEBAGAI REFERENSI ---
+    <?php 
+    $polygons = [];
+    if (isset($koordinat)) {
+        foreach ($koordinat as $k) {
+            $key = str_replace(' ', '_', $k['companyName'] . '_' . $k['permit']);
+            if (!isset($polygons[$key])) {
+                $polygons[$key] = [
+                    'name' => $k['companyName'],
+                    'permit' => $k['permit'],
+                    'points' => []
+                ];
+            }
+            $polygons[$key]['points'][] = [$k['latitude_deg'], $k['latitude_min'], $k['latitude_sec'], $k['latitude_dir'], $k['longitude_deg'], $k['longitude_min'], $k['longitude_sec'], $k['longitude_dir']];
+        }
+    }
+    ?>
+
+    var colors = ['#e74c3c', '#2ecc71', '#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#1abc9c', '#34495e'];
+    var colorIdx = 0;
+
+    <?php foreach ($polygons as $id => $p): ?>
+        var refCoords = [];
+        <?php foreach ($p['points'] as $pt): ?>
+            var rlat = dmsToDecimalPure(<?= $pt[0] ?>, <?= $pt[1] ?>, <?= $pt[2] ?>, '<?= $pt[3] ?>');
+            var rlng = dmsToDecimalPure(<?= $pt[4] ?>, <?= $pt[5] ?>, <?= $pt[6] ?>, '<?= $pt[7] ?>');
+            refCoords.push([rlat, rlng]);
+        <?php endforeach; ?>
+
+        if (refCoords.length > 1) {
+            var color = colors[colorIdx % colors.length]; colorIdx++;
+            L.polygon(refCoords, {
+                color: color, 
+                fillColor: color,
+                fillOpacity: 0.15, // Buat transparan agar tidak mengganggu gambar baru
+                weight: 1,
+                dashArray: '4, 4'
+            }).addTo(map).bindTooltip("<?= $p['name'] ?>", {sticky: true});
+        } else {
+             L.circleMarker(refCoords[0], {radius: 4, color: '#333'}).addTo(map);
+        }
+    <?php endforeach; ?>
+
+    function dmsToDecimalPure(deg, min, sec, dir) {
+        var res = parseFloat(deg) + (parseFloat(min) / 60) + (parseFloat(sec) / 3600);
+        if (dir === 'S' || dir === 'W') res = res * -1;
+        return res;
+    }
+
     map.on(L.Draw.Event.CREATED, function (e) {
         var layer = e.layer;
         drawnItems.clearLayers();

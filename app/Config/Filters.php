@@ -89,7 +89,9 @@ class Filters extends BaseFilters
                     // --- PENTING: Izinkan Halaman Landing Page ---
                     '/',           
                     'landing',     
-                    'landing/*'    
+                    'landing/*',
+                    'Home/debugAuth',
+                    'Home/viewMaps'
                 ]
             ],
         ],

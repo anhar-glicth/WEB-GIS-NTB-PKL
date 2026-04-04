@@ -1,80 +1,72 @@
-<?php
-/** @var \Myth\Auth\Config\Auth $config */
-$config = config('Auth');
-?>
-
 <?= $this->extend('auth/templates/index') ?>
 <?= $this->section('content') ?>
 
+<div class="card">
+    <div class="card-header">
+        <h3>Login Sistem</h3>
+        <p>Silakan masuk untuk akses dashboard GIS</p>
+    </div>
+    <div class="card-body">
 
-<div class="container">
-	<div class="row">
-		<div class="col-sm-6 offset-sm-3">
+        <?= view('App\Views\Auth\_message_block') ?>
 
-			<div class="card">
-				<h2 class="card-header"><?=lang('Auth.loginTitle')?></h2>
-				<div class="card-body">
+        <form action="<?= url_to('login') ?>" method="post">
+            <?= csrf_field() ?>
 
-					<?= view('App\Views\Auth\_message_block') ?>
+            <?php if ($config->validFields === ['email']): ?>
+                <div class="form-group mb-3">
+                    <label for="login"><?=lang('Auth.email')?></label>
+                    <input type="email" class="form-control <?php if (session('errors.login')) : ?>is-invalid<?php endif ?>"
+                           name="login" placeholder="Email Terdaftar">
+                    <div class="invalid-feedback">
+                        <?= session('errors.login') ?>
+                    </div>
+                </div>
+            <?php else: ?>
+                <div class="form-group mb-3">
+                    <label for="login">Email atau Username</label>
+                    <input type="text" class="form-control <?php if (session('errors.login')) : ?>is-invalid<?php endif ?>"
+                           name="login" placeholder="Email atau Username">
+                    <div class="invalid-feedback">
+                        <?= session('errors.login') ?>
+                    </div>
+                </div>
+            <?php endif; ?>
 
-					<form action="<?= url_to('login') ?>" method="post">
-						<?= csrf_field() ?>
+            <div class="form-group mb-4">
+                <label for="password"><?=lang('Auth.password')?></label>
+                <input type="password" name="password" class="form-control <?php if (session('errors.password')) : ?>is-invalid<?php endif ?>" placeholder="Kata Sandi">
+                <div class="invalid-feedback">
+                    <?= session('errors.password') ?>
+                </div>
+            </div>
 
-<?php if ($config->validFields === ['email']): ?>
-						<div class="form-group">
-							<label for="login"><?=lang('Auth.email')?></label>
-							<input type="email" class="form-control <?php if (session('errors.login')) : ?>is-invalid<?php endif ?>"
-								   name="login" placeholder="<?=lang('Auth.email')?>">
-							<div class="invalid-feedback">
-								<?= session('errors.login') ?>
-							</div>
-						</div>
-<?php else: ?>
-						<div class="form-group">
-							<label for="login"><?=lang('Auth.emailOrUsername')?></label>
-							<input type="text" class="form-control <?php if (session('errors.login')) : ?>is-invalid<?php endif ?>"
-								   name="login" placeholder="<?=lang('Auth.emailOrUsername')?>">
-							<div class="invalid-feedback">
-								<?= session('errors.login') ?>
-							</div>
-						</div>
-<?php endif; ?>
+            <?php if ($config->allowRemembering): ?>
+                <div class="form-check mb-4 custom-control custom-checkbox small">
+                    <input type="checkbox" name="remember" class="custom-control-input" id="customCheck" <?php if (old('remember')) : ?> checked <?php endif ?>>
+                    <label class="custom-control-label font-weight-normal text-muted" for="customCheck">
+                        <?=lang('Auth.rememberMe')?>
+                    </label>
+                </div>
+            <?php endif; ?>
 
-						<div class="form-group">
-							<label for="password"><?=lang('Auth.password')?></label>
-							<input type="password" name="password" class="form-control  <?php if (session('errors.password')) : ?>is-invalid<?php endif ?>" placeholder="<?=lang('Auth.password')?>">
-							<div class="invalid-feedback">
-								<?= session('errors.password') ?>
-							</div>
-						</div>
+            <button type="submit" class="btn btn-primary btn-block text-uppercase shadow-sm">
+                Masuk Sekarang <i class="fas fa-sign-in-alt ml-2"></i>
+            </button>
+        </form>
 
-<?php if ($config->allowRemembering): ?>
-						<div class="form-check">
-							<label class="form-check-label">
-								<input type="checkbox" name="remember" class="form-check-input" <?php if (old('remember')) : ?> checked <?php endif ?>>
-								<?=lang('Auth.rememberMe')?>
-							</label>
-						</div>
-<?php endif; ?>
-
-						<br>
-
-						<button type="submit" class="btn btn-primary btn-block"><?=lang('Auth.loginAction')?></button>
-					</form>
-
-					<hr>
-
-<?php if ($config->allowRegistration) : ?>
-					<p><a href="<?= url_to('register') ?>"><?=lang('Auth.needAnAccount')?></a></p>
-<?php endif; ?>
-<?php if ($config->activeResetter): ?>
-					<p><a href="<?= url_to('forgot') ?>"><?=lang('Auth.forgotYourPassword')?></a></p>
-<?php endif; ?>
-				</div>
-			</div>
-
-		</div>
-	</div>
+        <div class="auth-footer mt-4">
+            <?php if ($config->allowRegistration) : ?>
+                <p>Belum punya akun? <a href="<?= url_to('register') ?>">Daftar Perusahaan</a></p>
+            <?php endif; ?>
+            <?php if ($config->activeResetter): ?>
+                <p><a href="<?= url_to('forgot') ?>" class="small">Lupa Kata Sandi?</a></p>
+            <?php endif; ?>
+            <p class="mt-3">
+                <a href="<?= base_url('/') ?>" class="text-secondary"><i class="fas fa-arrow-left mr-1"></i> Kembali ke Beranda</a>
+            </p>
+        </div>
+    </div>
 </div>
 
 <?= $this->endSection() ?>

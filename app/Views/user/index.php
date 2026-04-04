@@ -118,30 +118,32 @@
                                 </td>
                                 <td class="align-middle text-center"><?= date('d M Y', strtotime($row['created_at'])); ?></td>
                                 <td class="align-middle text-center">
-                                    <?php if($row['status'] == 'acc'): ?>
-                                        <span class="badge badge-success px-3 py-2">Disetujui</span>
-                                    <?php elseif($row['status'] == 'tolak'): ?>
-                                        <span class="badge badge-danger px-3 py-2">Ditolak</span>
+                                    <?php 
+                                        $status = strtolower($row['status']);
+                                        if($status == 'acc' || $status == 'disetujui'): 
+                                    ?>
+                                        <span class="badge badge-success px-3 py-2 shadow-sm rounded-pill"><i class="fas fa-check-circle mr-1"></i> Disetujui</span>
+                                    <?php elseif($status == 'tolak' || $status == 'ditolak'): ?>
+                                        <span class="badge badge-danger px-3 py-2 shadow-sm rounded-pill"><i class="fas fa-times-circle mr-1"></i> Ditolak</span>
                                     <?php else: ?>
-                                        <span class="badge badge-warning px-3 py-2">Pending</span>
+                                        <span class="badge badge-warning px-3 py-2 shadow-sm rounded-pill"><i class="fas fa-clock mr-1"></i> Pending</span>
                                     <?php endif; ?>
                                 </td>
                                 <td class="align-middle">
-                                    <?php if($row['status'] == 'tolak'): ?>
+                                    <?php if($status == 'tolak' || $status == 'ditolak'): ?>
                                         <!-- Tampilkan Catatan Jika Ditolak -->
-                                        <div class="alert alert-danger py-2 px-3 small mb-2">
+                                        <div class="alert alert-danger py-2 px-3 small mb-2 border-0 shadow-sm">
                                             <strong><i class="fas fa-comment-dots"></i> Pesan Petugas:</strong><br>
                                             <?= !empty($row['catatan_penolakan']) ? esc($row['catatan_penolakan']) : 'Tidak ada catatan spesifik.'; ?>
                                         </div>
                                         
-                                        <!-- Tombol Perbaiki (Arahkan ke form edit, jika route sudah ada) -->
-                                        <!-- Saat ini mengarah ke input baru sebagai placeholder -->
-                                        <a href="<?= base_url('user/input-tambang'); ?>" class="btn btn-sm btn-warning shadow-sm">
+                                        <!-- Tombol Perbaiki -->
+                                        <a href="<?= base_url('user/input-tambang'); ?>" class="btn btn-sm btn-warning shadow-sm rounded-pill px-3">
                                             <i class="fas fa-edit"></i> Perbaiki / Upload Ulang
                                         </a>
 
-                                    <?php elseif($row['status'] == 'acc'): ?>
-                                        <span class="text-success small"><i class="fas fa-check-circle"></i> Laporan valid & terverifikasi.</span>
+                                    <?php elseif($status == 'acc' || $status == 'disetujui'): ?>
+                                        <span class="text-success small font-weight-bold"><i class="fas fa-check-circle"></i> Laporan valid & terverifikasi.</span>
                                     <?php else: ?>
                                         <span class="text-muted small"><em>Sedang menunggu pemeriksaan...</em></span>
                                     <?php endif; ?>

@@ -8,45 +8,72 @@ use Myth\Auth\Models\UserModel;
 class Petugas extends BaseController
 {
     /**
-     * Dashboard Petugas (List Laporan)
+     * Dashboard Petugas (Ringkasan)
      */
-    public function index()
+    public function dashboard()
     {
         $model = new LaporanModel();
         
         $data = [
-            'title' => 'Dashboard Petugas',
+            'title' => 'Dashboard Manajemen Wilayah',
             'totalLaporan' => $model->countAllResults(),
             'laporanPending' => $model->where('status', 'Pending')->countAllResults(),
-            'laporanACC' => $model->where('status', 'ACC')->countAllResults(),
+            'laporanAcc' => $model->where('status', 'ACC')->countAllResults(),
             'laporanTolak' => $model->where('status', 'Ditolak')->countAllResults(),
-            'laporan' => $model->select('laporan.*, users.username, users.email')
+            'laporanTerbaru' => $model->select('laporan.*, users.username, users.email')
                                ->join('users', 'users.id = laporan.user_id')
+                               ->orderBy('laporan.created_at', 'DESC')
+                               ->limit(5)
                                ->findAll()
         ];
 
-        return view('petugas/index', $data);
+        return view('petugas/dashboard', $data);
     }
 
     /**
-     * Tampilkan Detail Laporan
+     * Daftar Seluruh Laporan
+     */
+    public function laporan()
+    {
+        $model = new LaporanModel();
+        
+        $data = [
+            'title'   => 'Daftar Laporan Wilayah',
+            'laporan' => $model->select('laporan.*, users.username, users.email')
+                               ->join('users', 'users.id = laporan.user_id')
+                               ->orderBy('laporan.created_at', 'DESC')
+                               ->findAll()
+        ];
+
+        return view('petugas/laporan', $data);
+    }
+
+    /**
+     * Detail Laporan & Identitas Perusahaan
      */
     public function detail($id)
     {
         $model = new LaporanModel();
-        $data = [
-            'title' => 'Detail Laporan Wilayah',
-            'laporan' => $model->select('laporan.*, users.username, users.email')
+        $db = \Config\Database::connect();
+        
+        $data['laporan'] = $model->select('laporan.*, users.username, users.email')
                                ->join('users', 'users.id = laporan.user_id')
                                ->where('laporan.id', $id)
-                               ->first()
-        ];
+                               ->first();
         
         if (!$data['laporan']) {
-            return redirect()->to('/petugas')->with('error', 'Laporan tidak ditemukan.');
+            return redirect()->to('/petugas/laporan')->with('error', 'Laporan tidak ditemukan.');
         }
 
-        return view('petugas/detail', $data);
+        $data['title'] = 'Detail Verifikasi Laporan';
+        
+        // Ambil Data Perusahaan
+        $data['perusahaan'] = $db->table('perusahaan')
+                                 ->where('user_id', $data['laporan']['user_id'])
+                                 ->get()
+                                 ->getRowArray();
+
+        return view('petugas/detail_laporan', $data);
     }
 
     /**
@@ -54,21 +81,20 @@ class Petugas extends BaseController
      */
     public function acc($id)
     {
-        $model = new LaporanModel();
+        $model = new \App\Models\LaporanModel();
         $model->update($id, [
-            'status' => 'ACC',
+            'status' => 'Disetujui',
             'verified_at' => date('Y-m-d H:i:s')
         ]);
 
-        return redirect()->to('/petugas')->with('message', 'Laporan berhasil disetujui (ACC).');
+        return redirect()->to('/petugas/laporan')->with('success', 'Laporan berhasil disetujui (ACC).');
     }
 
     /**
-     * Aksi: Tolak Laporan (dengan alasan)
+     * Aksi: Tolak Laporan (dengan catatan)
      */
-    public function tolak()
+    public function tolak($id)
     {
-        $id = $this->request->getPost('id');
         $catatan = $this->request->getPost('catatan_penolakan');
 
         if (empty($catatan)) {
@@ -82,29 +108,48 @@ class Petugas extends BaseController
             'verified_at' => date('Y-m-d H:i:s')
         ]);
 
-        return redirect()->to('/petugas')->with('message', 'Laporan telah ditolak dengan catatan revisi.');
+        return redirect()->to('/petugas/laporan')->with('message', 'Laporan telah ditolak dengan catatan revisi.');
     }
 
-    /** 
-     * MANAJEMEN PROFILE PETUGAS (Password Enabled)
+    /**
+     * Fitur Download Berkas Laporan
      */
-    public function profile(): string
+    public function download($id)
+    {
+        $model = new LaporanModel();
+        $laporan = $model->find($id);
+
+        if (!$laporan || empty($laporan['file'])) {
+            return redirect()->back()->with('error', 'Catatan: File tidak ditemukan di database.');
+        }
+
+        $filepath = 'uploads/' . $laporan['file'];
+
+        if (!file_exists($filepath)) {
+            return redirect()->back()->with('error', 'Maaf, file fisik tidak ditemukan di server.');
+        }
+
+        return $this->response->download($filepath, null);
+    }
+
+    /**
+     * MANAJEMEN PROFILE PETUGAS
+     */
+    public function profile()
     {
         $data['title'] = 'My Profile (Petugas)';
         $db = \Config\Database::connect();
         $builder = $db->table('users');
-        $builder->select('users.id as userid, users.username, users.email, auth_groups.name as role');
+        $builder->select('users.id as userid, username, email, name as role');
         $builder->join('auth_groups_users', 'users.id = auth_groups_users.user_id', 'left');
         $builder->join('auth_groups', 'auth_groups.id = auth_groups_users.group_id', 'left');
         $builder->where('users.id', user_id());
-
-        $query = $builder->get();
-        $data['user'] = $query->getRow();
+        $data['user'] = $builder->get()->getRow();
 
         return view('petugas/profile', $data);
     }
 
-    public function editProfile(): string
+    public function editProfile()
     {
         $data['title'] = 'Edit Profile Petugas';
         $db = \Config\Database::connect();
@@ -118,28 +163,48 @@ class Petugas extends BaseController
     public function updateProfile()
     {
         $rules = [
-            'username' => 'required|min_length[3]|alpha_numeric_space',
-            'email'    => 'required|valid_email',
-            'password' => 'permit_empty|min_length[8]' // Validasi password minimal 8 karakter jika diisi
+            'username'   => 'required|min_length[3]|alpha_numeric_space',
+            'email'      => 'required|valid_email',
+            'password'   => 'permit_empty|min_length[8]',
+            'user_image' => 'is_image[user_image]|mime_in[user_image,image/jpg,image/jpeg,image/png]|max_size[user_image,1024]'
         ];
 
         if (!$this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $users = new UserModel();
-        $user = $users->find(user_id());
+        $usersModel = new UserModel();
+        $user = $usersModel->find(user_id());
+        $db = \Config\Database::connect();
 
-        $user->username = $this->request->getPost('username');
-        $user->email = $this->request->getPost('email');
+        $dataUpdate = [
+            'username' => $this->request->getPost('username'),
+            'email'    => $this->request->getPost('email'),
+        ];
 
-        // Jika password diisi, update password
         if ($this->request->getPost('password')) {
             $user->setPassword($this->request->getPost('password'));
+            $dataUpdate['password_hash'] = $user->password_hash;
         }
 
-        $users->save($user); // Myth/Auth handling hashing automatically via Entity
+        $file = $this->request->getFile('user_image');
+        if ($file && $file->isValid() && !$file->hasMoved()) {
+            $newName = $file->getRandomName();
+            if (!is_dir('uploads/profile')) {
+                mkdir('uploads/profile', 0777, true);
+            }
+            $file->move('uploads/profile/', $newName);
 
-        return redirect()->to('/petugas/profile')->with('message', 'Profil & Password Petugas berhasil diperbarui!');
+            if ($user->user_image != 'default.svg' && !empty($user->user_image)) {
+                if (file_exists('uploads/profile/' . $user->user_image)) {
+                    @unlink('uploads/profile/' . $user->user_image);
+                }
+            }
+            $dataUpdate['user_image'] = $newName;
+        }
+
+        $db->table('users')->where('id', user_id())->update($dataUpdate);
+
+        return redirect()->to('/petugas/profile')->with('message', 'Profil & Foto Petugas berhasil diperbarui!');
     }
 }

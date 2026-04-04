@@ -6,12 +6,12 @@
         <h1 class="h3 mb-0 text-gray-800">Detail Verifikasi Laporan</h1>
         
         <!-- Status Badge -->
-        <?php if ($laporan['status'] == 'acc'): ?>
-            <span class="badge badge-success px-3 py-2"><i class="fas fa-check-circle"></i> Disetujui</span>
-        <?php elseif ($laporan['status'] == 'tolak'): ?>
-            <span class="badge badge-danger px-3 py-2"><i class="fas fa-times-circle"></i> Ditolak</span>
+        <?php if (strtolower($laporan['status']) == 'disetujui'): ?>
+            <span class="badge badge-success px-4 py-2 shadow-sm font-weight-bold"><i class="fas fa-check-circle mr-1"></i> DISETUJUI</span>
+        <?php elseif (strtolower($laporan['status']) == 'ditolak'): ?>
+            <span class="badge badge-danger px-4 py-2 shadow-sm font-weight-bold"><i class="fas fa-times-circle mr-1"></i> DITOLAK</span>
         <?php else: ?>
-            <span class="badge badge-warning px-3 py-2"><i class="fas fa-clock"></i> Menunggu Verifikasi</span>
+            <span class="badge badge-warning px-4 py-2 shadow-sm font-weight-bold"><i class="fas fa-clock mr-1"></i> MENUNGGU VERIFIKASI</span>
         <?php endif; ?>
     </div>
 
@@ -102,7 +102,7 @@
                 </div>
                 <div class="card-body text-center">
                     
-                    <?php if ($laporan['status'] == 'pending') : ?>
+                    <?php if (strtolower($laporan['status']) == 'pending') : ?>
                         <p class="small text-muted mb-3">Tentukan status laporan ini:</p>
                         <div class="d-flex justify-content-center">
                             
@@ -127,7 +127,7 @@
                     <?php else : ?>
                         <div class="alert alert-secondary mb-0 small">
                             Status: <strong><?= strtoupper($laporan['status']); ?></strong>
-                            <?php if($laporan['status'] == 'tolak' && !empty($laporan['catatan_penolakan'])): ?>
+                            <?php if(strtolower($laporan['status']) == 'tolak' && !empty($laporan['catatan_penolakan'])): ?>
                                 <hr class="my-2">
                                 <div class="text-left"><strong>Catatan:</strong> <?= esc($laporan['catatan_penolakan']); ?></div>
                             <?php endif; ?>

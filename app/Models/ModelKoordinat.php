@@ -14,6 +14,8 @@ class ModelKoordinat extends Model
     protected $useTimestamps    = false; 
     
     protected $allowedFields    = [
+        'user_id', 
+        'laporan_id', // PENYAMBUNG ACC
         'latitude_deg', 
         'latitude_min', 
         'latitude_sec', 
@@ -26,6 +28,8 @@ class ModelKoordinat extends Model
         'dokumen_pendukung',
         'locationName',
         'companyName',
-        'permit'
+        'permit',
+        'status', // RADAR ACC
+        'catatan_petugas' // PESAN PENOLAKAN
     ];
 }

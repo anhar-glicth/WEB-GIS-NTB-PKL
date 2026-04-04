@@ -1,9 +1,9 @@
 <?php namespace App\Controllers;
 
+use App\Models\UserModel; // GUNAKAN MODEL KITA
 use App\Models\PerusahaanModel;
 use App\Models\LaporanModel;
 use App\Controllers\BaseController;
-use Myth\Auth\Models\UserModel;
 
 class User extends BaseController
 {
@@ -27,8 +27,8 @@ class User extends BaseController
         $data = [
             'judul' => 'Dashboard User',
             'totalLaporan'    => $this->laporanModel->where('user_id', $userId)->countAllResults(),
-            'approvedLaporan' => $this->laporanModel->where(['user_id' => $userId, 'status' => 'acc'])->countAllResults(),
-            'rejectedLaporan' => $this->laporanModel->where(['user_id' => $userId, 'status' => 'tolak'])->countAllResults(),
+            'approvedLaporan' => $this->laporanModel->where('user_id', $userId)->whereIn('status', ['acc', 'Disetujui'])->countAllResults(),
+            'rejectedLaporan' => $this->laporanModel->where('user_id', $userId)->whereIn('status', ['tolak', 'Ditolak'])->countAllResults(),
             'daftarLaporan'   => $this->laporanModel->where('user_id', $userId)
                                                     ->orderBy('created_at', 'DESC')
                                                     ->findAll(),
@@ -192,7 +192,7 @@ class User extends BaseController
         $data['judul'] = 'Account Settings';
         $db = \Config\Database::connect();
         $builder = $db->table('users');
-        $builder->select('users.id as userid, users.username, users.email, auth_groups.name as role');
+        $builder->select('users.id as userid, users.username, users.email, users.user_image, auth_groups.name as role');
         $builder->join('auth_groups_users', 'users.id = auth_groups_users.user_id', 'left');
         $builder->join('auth_groups', 'auth_groups.id = auth_groups_users.group_id', 'left');
         $builder->where('users.id', user_id());
@@ -219,7 +219,8 @@ class User extends BaseController
         $rules = [
             'username' => 'required|min_length[3]|alpha_numeric_space',
             'email'    => 'required|valid_email',
-            'password' => 'permit_empty|min_length[8]'
+            'password' => 'permit_empty|min_length[8]',
+            'user_image' => 'permit_empty|is_image[user_image]|max_size[user_image,2048]|mime_in[user_image,image/jpg,image/jpeg,image/png]'
         ];
 
         if (!$this->validate($rules)) {
@@ -232,12 +233,27 @@ class User extends BaseController
         $user->username = $this->request->getPost('username');
         $user->email = $this->request->getPost('email');
 
+        // Handle Image Upload
+        $fileImage = $this->request->getFile('user_image');
+        if ($fileImage && $fileImage->isValid() && !$fileImage->hasMoved()) {
+            $newName = $fileImage->getRandomName();
+            $fileImage->move('uploads/profile', $newName);
+            
+            // Delete old image if not default
+            if ($user->user_image && $user->user_image != 'default.png') {
+                if(file_exists('uploads/profile/' . $user->user_image)) {
+                    unlink('uploads/profile/' . $user->user_image);
+                }
+            }
+            $user->user_image = $newName;
+        }
+
         if ($this->request->getPost('password')) {
             $user->setPassword($this->request->getPost('password'));
         }
 
         $users->save($user);
 
-        return redirect()->to('/user/profile')->with('success', 'Akun & Password berhasil diperbarui!');
+        return redirect()->to('/user/profile')->with('success', 'Profil & Foto berhasil diperbarui!');
     }
 }

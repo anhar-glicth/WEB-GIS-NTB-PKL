@@ -13,11 +13,18 @@ $routes = Services::routes();
 $routes->get('/', 'Landing::index');
 // $routes->get('/', 'Home::index');
 
+// Temporary Auth Fix for Petugas
+$routes->get('authfix/seedPetugas', 'AuthFix::seedPetugas');
+$routes->get('authfix/lantikPetugas', 'AuthFix::lantikPetugas');
+$routes->get('authfix/pangkatAdmin', 'AuthFix::pangkatAdmin');
+
 // ========================
 // AUTH ROUTES
 // ========================
 $routes->get('login', 'AuthController::login');
+$routes->post('login', 'AuthController::attemptLogin');
 $routes->get('register', 'AuthController::register');
+$routes->post('register', 'AuthController::attemptRegister');
 $routes->get('logout', 'AuthController::logout');
 $routes->get('forgotpassword', 'AuthController::forgotpassword');
 $routes->get('resetpassword', 'AuthController::resetpassword');
@@ -38,10 +45,11 @@ $routes->group('admin', ['filter' => 'role:admin'], function($routes) {
     // User Management
     // FIX 404: Menambahkan rute 'user-list' agar sesuai dengan link menu
     $routes->get('user-list', 'Admin::userList'); 
-    $routes->get('userList', 'Admin::userList'); // Alias (untuk backward compatibility)
+    $routes->get('userList', 'Admin::userList'); // Alias
     
     $routes->get('createUser', 'Admin::createUser');
     $routes->post('saveUser', 'Admin::saveUser');
+    $routes->get('deleteUser/(:num)', 'Admin::deleteUser/$1');
     
     // Route User Management yang spesifik ke Controller User:
     $routes->get('user', 'User::index');
@@ -52,6 +60,10 @@ $routes->group('admin', ['filter' => 'role:admin'], function($routes) {
     $routes->get('user/insertUserRole/(:any)', 'User::insertUserRole/$1');
     $routes->get('user/editUserRole/(:any)', 'User::editUserRole/$1');
     $routes->get('user/updateUserRole/(:any)', 'User::updateUserRole/$1');
+
+    // CMS & Web Settings
+    $routes->get('settings', 'Admin::settings');
+    $routes->post('updateSettings', 'Admin::updateSettings');
 
     // Role Management
     $routes->get('role', 'Role::index');
@@ -95,9 +107,15 @@ $routes->group('petugas', ['filter' => 'role:petugas'], function($routes) {
     $routes->get('identitas_perusahaan', 'Petugas::identitas_perusahaan'); 
     $routes->post('identitas_perusahaan', 'Petugas::simpan_identitas');
 
+    $routes->get('profile', 'Petugas::profile');
+    $routes->get('editProfile', 'Petugas::editProfile');
+    $routes->post('updateProfile', 'Petugas::updateProfile');
+
     // Data Poligon (Hasil Inputan User) - Digabung kesini agar rapi
     $routes->get('data-poligon', 'PetugasPoligon::index');
-    $routes->get('data-poligon/hapus/(:num)', 'PetugasPoligon::hapus/$1');
+    $routes->get('data-poligon/acc/(:any)', 'PetugasPoligon::acc/$1');
+    $routes->post('data-poligon/tolak/(:any)', 'PetugasPoligon::tolak/$1');
+    $routes->get('data-poligon/hapus/(:any)', 'PetugasPoligon::hapus/$1');
 });
 
 // ========================
@@ -108,13 +126,13 @@ $routes->group('user', ['filter' => 'role:user'], function($routes) {
     $routes->get('/', 'User::index');
     
     // Laporan
-    $routes->get('input-tambang', 'Home::lapor');
-    $routes->post('input-tambang', 'Home::insertLaporan');
-    $routes->post('laporan/data', 'Home::insertLaporan');
+    $routes->get('input-tambang', 'User::inputTambang');
+    $routes->post('input-tambang', 'User::saveInputTambang');
+    $routes->post('laporan/data', 'User::saveInputTambang');
 
     // Route untuk Laporan/Dokumen
-    $routes->get('laporan-list', 'Home::simpan');
-    $routes->get('v_laporan', 'Home::simpan');
+    $routes->get('laporan-list', 'User::index');
+    $routes->get('v_laporan', 'User::index');
     $routes->post('laporan/upload', 'Home::dokumen');
     
     // Rute Laporan lama
@@ -126,6 +144,11 @@ $routes->group('user', ['filter' => 'role:user'], function($routes) {
     $routes->get('detailPerusahaan', 'User::detailPerusahaan'); 
     $routes->get('input-perusahaan', 'User::inputPerusahaan');
     $routes->post('input-perusahaan', 'User::saveInputPerusahaan');
+
+    // Profile & Settings
+    $routes->get('profile', 'User::profile');
+    $routes->get('editProfile', 'User::editProfile');
+    $routes->post('updateProfile', 'User::updateProfile');
 });
 
 // ========================
@@ -151,6 +174,11 @@ $routes->post('Lokasi/insertData', 'Lokasi::insertData');
 // 'poligon_view' dibutuhkan karena controller redirect kesini setelah simpan
 $routes->get('poligon_view', 'ControlersPoligon::index'); 
 $routes->get('poligon', 'ControlersPoligon::index'); // Alias
+$routes->get('poligon/riwayat', 'ControlersPoligon::history'); // TAMBAHKAN INI
 
 // 2. Memproses Simpan Poligon
 $routes->post('poligon/simpan', 'ControlersPoligon::simpan');
+$routes->post('Home/simpanPoligon', 'ControlersPoligon::simpan'); // TAMBAHKAN INI
+
+// 3. Menghapus Poligon
+$routes->get('poligon/hapus/(:any)', 'ControlersPoligon::hapusByPermit/$1');
