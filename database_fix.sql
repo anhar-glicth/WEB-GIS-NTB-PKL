@@ -1,11 +1,13 @@
 -- DATABASE FIX FOR WEB-GIS-NTB-PKL
+-- Pastikan Anda telah memilih database 'gis' di phpMyAdmin sebelum menjalankan ini.
 
--- 1. FIX TABLE: koordinat (adding ID and documents)
+-- 1. FIX TABLE: koordinat (menambah ID primer dan field dokumen)
 ALTER TABLE `koordinat` 
 ADD COLUMN `id` INT(11) AUTO_INCREMENT PRIMARY KEY FIRST,
-ADD COLUMN `dokumen_pendukung` VARCHAR(255) NULL AFTER `foto_lokasi`;
+ADD COLUMN `dokumen_pendukung` VARCHAR(255) NULL AFTER `foto_lokasi`,
+MODIFY COLUMN `permit` VARCHAR(100) NOT NULL;
 
--- 2. FIX TABLE: laporan (adding mining detail columns)
+-- 2. FIX TABLE: laporan (menambah kolom detail data teknis tambang)
 ALTER TABLE `laporan`
 ADD COLUMN `nama_blok` VARCHAR(255) NULL AFTER `user_id`,
 ADD COLUMN `luas_ha` FLOAT NULL AFTER `nama_blok`,
@@ -26,7 +28,7 @@ ADD COLUMN `umur_tambang` INT NULL AFTER `prod_tahunan`,
 ADD COLUMN `catatan_penolakan` TEXT NULL AFTER `status`,
 ADD COLUMN `verified_at` DATETIME NULL AFTER `updated_at`;
 
--- 3. CREATE TABLE: perusahaan (MISSING in gis.sql)
+-- 3. CREATE TABLE: perusahaan (Data identitas lengkap perusahaan)
 CREATE TABLE IF NOT EXISTS `perusahaan` (
   `id` INT(11) AUTO_INCREMENT PRIMARY KEY,
   `user_id` INT(11) NOT NULL,
@@ -46,7 +48,7 @@ CREATE TABLE IF NOT EXISTS `perusahaan` (
   `updated_at` DATETIME NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 4. CREATE TABLE: inputdatatambang (Optional if redundant but used in InputTambangModel)
+-- 4. CREATE TABLE: inputdatatambang (Tabel opsional untuk arsip riwayat)
 CREATE TABLE IF NOT EXISTS `inputdatatambang` (
   `id` INT(11) AUTO_INCREMENT PRIMARY KEY,
   `user_id` INT(11) NOT NULL,
