@@ -1,30 +1,30 @@
--- DATABASE FIX FINAL (RELATIONAL INTEGRITY) FOR WEB-GIS-NTB-PKL
+-- DATABASE FIX FINAL (RELATIONAL INTEGRITY + REAL AUTH DEMO) FOR WEB-GIS-NTB-PKL
 -- Pastikan Anda telah memilih database 'gis' di phpMyAdmin sebelum menjalankan ini.
 
 -- 1. FIX TABLE: koordinat (menambah ID primer, dokumen, dan owner identification)
 ALTER TABLE `koordinat` 
-ADD COLUMN `id` INT(11) AUTO_INCREMENT PRIMARY KEY FIRST,
-ADD COLUMN `user_id` INT(11) NULL AFTER `id`,
-ADD COLUMN `dokumen_pendukung` VARCHAR(255) NULL AFTER `foto_lokasi`,
+ADD COLUMN IF NOT EXISTS `id` INT(11) AUTO_INCREMENT PRIMARY KEY FIRST,
+ADD COLUMN IF NOT EXISTS `user_id` INT(11) UNSIGNED NULL AFTER `id`,
+ADD COLUMN IF NOT EXISTS `dokumen_pendukung` VARCHAR(255) NULL AFTER `foto_lokasi`,
 MODIFY COLUMN `permit` VARCHAR(100) NOT NULL;
 
 -- 2. FIX TABLE: laporan (menambah detail teknis & audit trail)
 ALTER TABLE `laporan`
-ADD COLUMN `nama_blok` VARCHAR(255) NULL AFTER `user_id`,
-ADD COLUMN `luas_ha` FLOAT NULL AFTER `nama_blok`,
-ADD COLUMN `sd_tereka` FLOAT DEFAULT 0,
-ADD COLUMN `sd_terunjuk` FLOAT DEFAULT 0,
-ADD COLUMN `sd_terukur` FLOAT DEFAULT 0,
-ADD COLUMN `cd_terkira` FLOAT DEFAULT 0,
-ADD COLUMN `cd_terbukti` FLOAT DEFAULT 0,
-ADD COLUMN `prod_tahunan` FLOAT DEFAULT 0,
-ADD COLUMN `catatan_penolakan` TEXT NULL AFTER `status`,
-ADD COLUMN `verified_at` DATETIME NULL AFTER `updated_at`;
+ADD COLUMN IF NOT EXISTS `nama_blok` VARCHAR(255) NULL AFTER `user_id`,
+ADD COLUMN IF NOT EXISTS `luas_ha` FLOAT NULL AFTER `nama_blok`,
+ADD COLUMN IF NOT EXISTS `sd_tereka` FLOAT DEFAULT 0,
+ADD COLUMN IF NOT EXISTS `sd_terunjuk` FLOAT DEFAULT 0,
+ADD COLUMN IF NOT EXISTS `sd_terukur` FLOAT DEFAULT 0,
+ADD COLUMN IF NOT EXISTS `cd_terkira` FLOAT DEFAULT 0,
+ADD COLUMN IF NOT EXISTS `cd_terbukti` FLOAT DEFAULT 0,
+ADD COLUMN IF NOT EXISTS `prod_tahunan` FLOAT DEFAULT 0,
+ADD COLUMN IF NOT EXISTS `catatan_penolakan` TEXT NULL AFTER `status`,
+ADD COLUMN IF NOT EXISTS `verified_at` DATETIME NULL AFTER `updated_at`;
 
 -- 3. CREATE TABLE: perusahaan (Identitas Perusahaan)
 CREATE TABLE IF NOT EXISTS `perusahaan` (
   `id` INT(11) AUTO_INCREMENT PRIMARY KEY,
-  `user_id` INT(11) NOT NULL,
+  `user_id` INT(11) UNSIGNED NOT NULL,
   `nama_perusahaan` VARCHAR(255) NOT NULL,
   `alamat_perusahaan` TEXT NULL,
   `npwp` VARCHAR(50) NULL,
@@ -50,11 +50,23 @@ CREATE TABLE IF NOT EXISTS `web_settings` (
   `updated_at` DATETIME NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 5. SETTING FOREIGN KEYS (Relational Locks)
--- Menghubungkan Laporan, Perusahaan, dan Koordinat ke Akun Users
-ALTER TABLE `laporan` ADD CONSTRAINT `fk_laporan_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `perusahaan` ADD CONSTRAINT `fk_perusahaan_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE `koordinat` ADD CONSTRAINT `fk_koordinat_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+-- 5. RELATIONAL LOCKS (Foreign Keys)
+ALTER TABLE `laporan` MODIFY COLUMN `user_id` INT(11) UNSIGNED NOT NULL;
+ALTER TABLE `perusahaan` MODIFY COLUMN `user_id` INT(11) UNSIGNED NOT NULL;
+ALTER TABLE `koordinat` MODIFY COLUMN `user_id` INT(11) UNSIGNED NULL;
+
+-- 6. INSERT DEMO ACCOUNTS (Myth/Auth REAL HASHES)
+-- Login Email: admin@admin.com / Password: admin123
+-- Login Email: petugas@petugas.com / Password: petugas123
+-- Login Email: user@user.com / Password: user123
+INSERT IGNORE INTO `users` (`id`, `email`, `username`, `password_hash`, `active`, `created_at`, `updated_at`) VALUES
+(1, 'admin@admin.com', 'admin', '$2y$10$WOxgJR0TT3xfukUrjiKhX.j2cjiK1.u9ON.XjSUH/yf55o.5Z6zCC2', 1, NOW(), NOW()),
+(2, 'petugas@petugas.com', 'petugas', '$2y$10$kwSrz.nzlEHo2VCElnzL4Ok0h.y5klWFPmQOKlS2w8fCrQyTB5xkkW', 1, NOW(), NOW()),
+(3, 'user@user.com', 'user', '$2y$10$nVsLwADI4uJHvaK6eHF68.S.Fh1fUcmhXqBt837kQ34YjmAlF1Wjjm', 1, NOW(), NOW());
+
+-- 7. ASSIGN ROLES TO ACCOUNTS (1=admin, 2=petugas, 3=user)
+INSERT IGNORE INTO `auth_groups_users` (`group_id`, `user_id`) VALUES 
+(1, 1), (2, 2), (3, 3);
 
 -- Default Settings
 INSERT IGNORE INTO `web_settings` (`setting_key`, `setting_value`) VALUES 
