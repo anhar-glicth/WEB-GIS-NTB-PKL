@@ -17,19 +17,16 @@ class Home extends BaseController
         $perusahaanModel = new PerusahaanModel();
         $koordinatModel = new ModelKoordinat();
 
-        // 1. Ambil Statistik
         $data = [
             'totalLaporan' => $laporanModel->countAllResults(),
             'totalPerusahaan' => $perusahaanModel->countAllResults(),
             'totalTitik' => $koordinatModel->countAllResults(),
         ];
 
-        // 2. Ambil Pengaturan Web (CMS)
         $db = \Config\Database::connect();
         $settingsBuilder = $db->table('web_settings');
         $settings = $settingsBuilder->get()->getResultArray();
         
-        // Default values jika database kosong
         $data['site_name'] = 'WEB-GIS NTB PKL';
         $data['hero_image'] = 'https://images.unsplash.com/photo-1578321272176-b7bbc0679853?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80';
 
@@ -76,7 +73,7 @@ class Home extends BaseController
     }
 
     /**
-     * Simpan Poligon Data SIG
+     * Simpan Poligon Data SIG (Relational Update)
      */
     public function simpanPoligon()
     {
@@ -100,9 +97,11 @@ class Home extends BaseController
             $fileFoto->move('uploads/lokasi/', $namaFoto);
         }
 
+        // Simpan setiap titik koordinat (relasi ke User yang login)
         if (is_array($latDeg)) {
             foreach ($latDeg as $key => $value) {
                 $model->insert([
+                    'user_id'        => user_id(), // Mencatat siapa yang menggambar
                     'companyName'    => $this->request->getPost('companyName'),
                     'locationName'   => $this->request->getPost('locationName'),
                     'permit'         => $this->request->getPost('permit'),
