@@ -2,71 +2,89 @@
 <?= $this->section('page-content') ?>
 
 <div class="container-fluid">
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-            <h6 class="m-0 font-weight-bold text-primary">Peta Sebaran Pertambangan NTB</h6>
-        </div>
-        <div class="card-body">
-            <div id="map" style="width: 100%; height: 600px; border-radius: 10px; border: 1px solid #ccc;"></div>
+    <!-- Row: Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-primary text-white">
+                    <h6 class="m-0 font-weight-bold">Visualisasi Seluruh Wilayah Pertambangan</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="btn btn-light btn-sm shadow-sm" href="<?= base_url('Home/poligon') ?>">
+                            <i class="fas fa-plus fa-sm text-primary"></i> <span class="d-none d-sm-inline">Tambah Data SIG</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Map Container with Responsive Height -->
+                    <div id="map" style="width: 100%; height: 75vh; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;"></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
+<!-- LEAFLET -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script>
-    // Inisialisasi peta berpusat di NTB
-    const map = L.map('map').setView([-8.65, 116.3], 9);
+    // 1. Layer Definitions
+    var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    });
 
-    const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
+    var googleHybrid = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{
+        maxZoom: 20,
+        subdomains:['mt0','mt1','mt2','mt3']
+    });
 
-    // Ambil data koordinat dari PHP
-    const dataKoordinat = <?= json_encode($koordinat) ?>;
-    
-    // Objek untuk menampung poligon berdasarkan izin (permit)
-    const poligonGroup = {};
+    // 2. Map Initialization
+    var map = L.map('map', {
+        center: [-8.65, 116.3], // NTT/NTB
+        zoom: 9,
+        layers: [osm]
+    });
 
-    dataKoordinat.forEach(function(item) {
-        // Konversi DMS ke Decimal jika perlu (asumsi database menyimpan nilai decimal)
-        // Jika DB menyimpan derajat, menit, detik: kita hitung dulu
-        const lat = parseFloat(item.latitude_deg) + (parseFloat(item.latitude_min)/60) + (parseFloat(item.latitude_sec)/3600);
-        const lng = parseFloat(item.longitude_deg) + (parseFloat(item.longitude_min)/60) + (parseFloat(item.longitude_sec)/3600);
+    var baseMaps = {
+        "Struktur Jalan (OSM)": osm,
+        "Satelit (Hybrid)": googleHybrid
+    };
+    L.control.layers(baseMaps).addTo(map);
+
+    // 3. Render Data from Database
+    <?php foreach ($koordinat as $k): ?>
+        var lat = dmsToDecimal(<?= $k['latitude_deg'] ?>, <?= $k['latitude_min'] ?>, <?= $k['latitude_sec'] ?>, '<?= $k['latitude_dir'] ?>');
+        var lng = dmsToDecimal(<?= $k['longitude_deg'] ?>, <?= $k['longitude_min'] ?>, <?= $k['longitude_sec'] ?>, '<?= $k['longitude_dir'] ?>');
         
-        // Sesuaikan arah (S/W menjadi negatif)
-        const finalLat = (item.latitude_dir === 'S') ? lat * -1 : lat;
-        const finalLng = (item.longitude_dir === 'W') ? lng * -1 : lng;
+        L.marker([lat, lng]).addTo(map)
+            .bindPopup(`
+                <div style="min-width: 180px;">
+                    <div class="badge badge-primary mb-2"><?= $k['permit'] ?></div>
+                    <h6 class="mb-1"><b><?= $k['companyName'] ?></b></h6>
+                    <hr class="my-1">
+                    <p class="small text-muted mb-2"><b>Area:</b> <?= $k['locationName'] ?></p>
+                    <?php if ($k['foto_lokasi']): ?>
+                        <img src="<?= base_url('uploads/lokasi/' . $k['foto_lokasi']) ?>" 
+                             class="img-fluid rounded mb-2 shadow-sm" 
+                             style="max-height: 100px; width: 100%; object-fit: cover;">
+                    <?php endif; ?>
+                    <a href="<?= base_url('user/laporan') ?>" class="btn btn-info btn-xs btn-block text-white" style="font-size: 10px;">Lihat Laporan Teknis</a>
+                </div>
+            `);
+    <?php endforeach; ?>
 
-        // Tambah Marker
-        const marker = L.marker([finalLat, finalLng]).addTo(map);
-        marker.bindPopup(`
-            <b>${item.companyName}</b><br>
-            Lokasi: ${item.locationName}<br>
-            Izin: ${item.permit}<br>
-            <hr>
-            <small>Lat: ${finalLat.toFixed(6)}, Lng: ${finalLng.toFixed(6)}</small>
-        `);
-
-        // Simpan titik ke grup poligon berdasarkan ID izin
-        if (!poligonGroup[item.permit]) {
-            poligonGroup[item.permit] = [];
-        }
-        poligonGroup[item.permit].push([finalLat, finalLng]);
-    });
-
-    // Gambar Poligon/Garis untuk setiap grup izin
-    Object.keys(poligonGroup).forEach(function(key) {
-        if (poligonGroup[key].length > 2) {
-            L.polygon(poligonGroup[key], {color: 'blue', fillOpacity: 0.2}).addTo(map);
-        } else if (poligonGroup[key].length > 1) {
-            L.polyline(poligonGroup[key], {color: 'red'}).addTo(map);
-        }
-    });
-
-    // Sesuaikan view jika ada data
-    if (dataKoordinat.length > 0) {
-        // map.fitBounds(L.featureGroup(Object.values(poligonGroup).flat()).getBounds());
+    // DMS Converter Helper
+    function dmsToDecimal(deg, min, sec, dir) {
+        var res = deg + (min / 60) + (sec / 3600);
+        if (dir === 'S' || dir === 'W') res = res * -1;
+        return res;
     }
 </script>
+
+<style>
+    /* Styling khusus button popup agar lebih cantik */
+    .btn-xs { padding: 2px 5px; font-size: 10px; border-radius: 3px; }
+    .badge-primary { font-size: 9px; padding: 4px 8px; }
+</style>
 
 <?= $this->endSection() ?>

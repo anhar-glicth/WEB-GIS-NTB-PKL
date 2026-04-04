@@ -109,6 +109,22 @@
             <span>Upload Laporan (Dokumen)</span>
         </a>
     </li>
+    <hr class="sidebar-divider">
+    <div class="sidebar-heading">
+        <i class="fas fa-user-cog"></i> Akun Saya
+    </div>
+    <li class="nav-item">
+        <a class="nav-link" href="<?= base_url('user/profile') ?>">
+            <i class="fas fa-id-card"></i>
+            <span>Profil Akun</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="<?= base_url('user/editProfile') ?>">
+            <i class="fas fa-user-edit"></i>
+            <span>Pengaturan Akun</span>
+        </a>
+    </li>
     <?php endif; ?>
 
     <!-- ===================== PETUGAS MENU ===================== -->
@@ -140,6 +156,22 @@
         <a class="nav-link" href="<?= base_url('petugas/data-poligon') ?>">
             <i class="fas fa-map-marked-alt"></i>
             <span>Koordinat Tambang</span>
+        </a>
+    </li>
+    <hr class="sidebar-divider">
+    <div class="sidebar-heading">
+        <i class="fas fa-user-cog"></i> Akun Saya
+    </div>
+    <li class="nav-item">
+        <a class="nav-link" href="<?= base_url('petugas/profile') ?>">
+            <i class="fas fa-id-card"></i>
+            <span>Profil Petugas</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="<?= base_url('petugas/editProfile') ?>">
+            <i class="fas fa-user-edit"></i>
+            <span>Pengaturan Akun</span>
         </a>
     </li>
     <?php endif; ?>

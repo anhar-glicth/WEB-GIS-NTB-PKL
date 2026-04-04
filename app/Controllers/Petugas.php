@@ -1,190 +1,145 @@
-<?php namespace App\Controllers;
+<?php
+
+namespace App\Controllers;
 
 use App\Models\LaporanModel;
-use App\Models\PerusahaanModel;
-use CodeIgniter\Files\File;
-use App\Controllers\BaseController;
+use Myth\Auth\Models\UserModel;
 
 class Petugas extends BaseController
 {
-    protected $laporanModel;
-    protected $perusahaanModel;
-
-    public function __construct()
-    {
-        $this->laporanModel = new LaporanModel();
-        $this->perusahaanModel = new PerusahaanModel();
-    }
-
     /**
-     * Dashboard Petugas
+     * Dashboard Petugas (List Laporan)
      */
     public function index()
     {
-        return $this->dashboard();
+        $model = new LaporanModel();
+        
+        $data = [
+            'title' => 'Dashboard Petugas',
+            'totalLaporan' => $model->countAllResults(),
+            'laporanPending' => $model->where('status', 'Pending')->countAllResults(),
+            'laporanACC' => $model->where('status', 'ACC')->countAllResults(),
+            'laporanTolak' => $model->where('status', 'Ditolak')->countAllResults(),
+            'laporan' => $model->select('laporan.*, users.username, users.email')
+                               ->join('users', 'users.id = laporan.user_id')
+                               ->findAll()
+        ];
+
+        return view('petugas/index', $data);
     }
 
     /**
-     * Dashboard utama
+     * Tampilkan Detail Laporan
      */
-    public function dashboard()
-    {
-        $data = [
-            'judul'           => 'Dashboard Petugas',
-            'totalLaporan'    => $this->laporanModel->countAllResults(),
-            'laporanAcc'      => $this->laporanModel->where('status', 'acc')->countAllResults(),
-            'laporanTolak'    => $this->laporanModel->where('status', 'tolak')->countAllResults(),
-            'laporanPending'  => $this->laporanModel->where('status', 'pending')->countAllResults(),
-            'laporanTerbaru'  => $this->laporanModel
-                ->select('laporan.*, users.username')
-                ->join('users', 'users.id = laporan.user_id', 'left')
-                ->orderBy('laporan.created_at', 'DESC')
-                ->limit(5)
-                ->findAll(),
-        ];
-
-        return view('petugas/dashboard', $data);
-    }
-
-    /**
-     * Daftar semua laporan pengguna
-     */
-    public function laporan()
-    {
-        $data = [
-            'judul'   => 'Daftar Laporan Pengguna',
-            'laporan' => $this->laporanModel
-                ->select('laporan.*, users.username, users.email')
-                ->join('users', 'users.id = laporan.user_id', 'left')
-                ->orderBy('laporan.created_at', 'DESC')
-                ->findAll(),
-        ];
-
-        return view('petugas/laporan', $data);
-    }
-
     public function detail($id)
     {
-        $laporan = $this->laporanModel
-            ->select('laporan.*, users.username, users.email')
-            ->join('users', 'users.id = laporan.user_id', 'left')
-            ->where('laporan.id', $id)
-            ->first();
-
-        if (!$laporan) {
-            return redirect()->back()->with('error', 'Laporan tidak ditemukan.');
+        $model = new LaporanModel();
+        $data = [
+            'title' => 'Detail Laporan Wilayah',
+            'laporan' => $model->select('laporan.*, users.username, users.email')
+                               ->join('users', 'users.id = laporan.user_id')
+                               ->where('laporan.id', $id)
+                               ->first()
+        ];
+        
+        if (!$data['laporan']) {
+            return redirect()->to('/petugas')->with('error', 'Laporan tidak ditemukan.');
         }
 
-        $perusahaan = $this->perusahaanModel
-            ->where('user_id', $laporan['user_id'])
-            ->first();
-
-        $data = [
-            'judul' => 'Detail Laporan',
-            'laporan' => $laporan,
-            'perusahaan' => $perusahaan
-        ];
-
-        return view('petugas/detail_laporan', $data);
+        return view('petugas/detail', $data);
     }
 
     /**
-     * ACC laporan
+     * Aksi: ACC (Setujui Laporan)
      */
     public function acc($id)
     {
-        $laporan = $this->laporanModel->find($id);
-        if (!$laporan) {
-            return redirect()->back()->with('error', 'Laporan tidak ditemukan.');
-        }
-
-        $this->laporanModel->update($id, [
-            'status' => 'acc',
+        $model = new LaporanModel();
+        $model->update($id, [
+            'status' => 'ACC',
             'verified_at' => date('Y-m-d H:i:s')
         ]);
 
-        return redirect()->to(base_url('petugas/laporan'))->with('success', 'Laporan berhasil disetujui.');
+        return redirect()->to('/petugas')->with('message', 'Laporan berhasil disetujui (ACC).');
     }
 
     /**
-     * Tolak laporan
+     * Aksi: Tolak Laporan (dengan alasan)
      */
-    public function tolak($id)
+    public function tolak()
     {
-        $laporan = $this->laporanModel->find($id);
-        if (!$laporan) {
-            return redirect()->back()->with('error', 'Laporan tidak ditemukan.');
-        }
-
+        $id = $this->request->getPost('id');
         $catatan = $this->request->getPost('catatan_penolakan');
 
         if (empty($catatan)) {
-            return redirect()->back()->with('error', 'Wajib menyertakan alasan penolakan.');
+            return redirect()->back()->with('error', 'Alasan penolakan wajib diisi.');
         }
 
-        $this->laporanModel->update($id, [
-            'status' => 'tolak',
+        $model = new LaporanModel();
+        $model->update($id, [
+            'status' => 'Ditolak',
             'catatan_penolakan' => $catatan,
             'verified_at' => date('Y-m-d H:i:s')
         ]);
 
-        return redirect()->to(base_url('petugas/laporan'))->with('success', 'Laporan ditolak.');
+        return redirect()->to('/petugas')->with('message', 'Laporan telah ditolak dengan catatan revisi.');
     }
 
-    /**
-     * Download file laporan
+    /** 
+     * MANAJEMEN PROFILE PETUGAS (Password Enabled)
      */
-    public function download($id)
+    public function profile(): string
     {
-        $laporan = $this->laporanModel->find($id);
+        $data['title'] = 'My Profile (Petugas)';
+        $db = \Config\Database::connect();
+        $builder = $db->table('users');
+        $builder->select('users.id as userid, users.username, users.email, auth_groups.name as role');
+        $builder->join('auth_groups_users', 'users.id = auth_groups_users.user_id', 'left');
+        $builder->join('auth_groups', 'auth_groups.id = auth_groups_users.group_id', 'left');
+        $builder->where('users.id', user_id());
 
-        if (!$laporan) {
-            return redirect()->back()->with('error', 'Data laporan tidak ditemukan.');
-        }
+        $query = $builder->get();
+        $data['user'] = $query->getRow();
 
-        $filePath = WRITEPATH . 'uploads/' . $laporan['file'];
-
-        if (!file_exists($filePath)) {
-            $publicPath = FCPATH . 'uploads/' . $laporan['file'];
-            if (file_exists($publicPath)) {
-                return $this->response->download($publicPath, null);
-            }
-            return redirect()->back()->with('error', 'File tidak ditemukan.');
-        }
-
-        return $this->response->download($filePath, null);
+        return view('petugas/profile', $data);
     }
 
-    /**
-     * Menampilkan daftar identitas perusahaan (Untuk Petugas)
-     */
-    public function identitas_perusahaan()
+    public function editProfile(): string
     {
-        $data = [
-            'judul' => 'Daftar Identitas Perusahaan',
-            'perusahaan' => $this->perusahaanModel->findAll()
+        $data['title'] = 'Edit Profile Petugas';
+        $db = \Config\Database::connect();
+        $builder = $db->table('users');
+        $builder->where('id', user_id());
+        $data['user'] = $builder->get()->getRow();
+
+        return view('petugas/edit_profile', $data);
+    }
+
+    public function updateProfile()
+    {
+        $rules = [
+            'username' => 'required|min_length[3]|alpha_numeric_space',
+            'email'    => 'required|valid_email',
+            'password' => 'permit_empty|min_length[8]' // Validasi password minimal 8 karakter jika diisi
         ];
 
-        return view('petugas/identitas_perusahaan', $data);
-    }
-
-    /**
-     * Melihat detail perusahaan tertentu bagi petugas
-     */
-    public function detailPerusahaan($id)
-    {
-        $perusahaan = $this->perusahaanModel->find($id);
-        
-        if (!$perusahaan) {
-            return redirect()->back()->with('error', 'Data perusahaan tidak ditemukan.');
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $data = [
-            'judul' => 'Detail Perusahaan',
-            'perusahaan' => $perusahaan
-        ];
+        $users = new UserModel();
+        $user = $users->find(user_id());
 
-        // Petugas bisa meminjam view detail milik user atau punya sendiri
-        return view('user/detail-perusahaan', $data); 
+        $user->username = $this->request->getPost('username');
+        $user->email = $this->request->getPost('email');
+
+        // Jika password diisi, update password
+        if ($this->request->getPost('password')) {
+            $user->setPassword($this->request->getPost('password'));
+        }
+
+        $users->save($user); // Myth/Auth handling hashing automatically via Entity
+
+        return redirect()->to('/petugas/profile')->with('message', 'Profil & Password Petugas berhasil diperbarui!');
     }
 }

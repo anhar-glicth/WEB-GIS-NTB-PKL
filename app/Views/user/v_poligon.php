@@ -2,172 +2,126 @@
 <?= $this->section('page-content') ?>
 
 <div class="container-fluid">
-  <h1 class="h3 mb-4 text-gray-800">Input Data Koordinat Poligon</h1>
-
-  <?php if (session()->getFlashdata('success')): ?>
-      <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
-  <?php endif; ?>
-
-  <form action="<?= base_url('Home/simpanPoligon') ?>" method="post" enctype="multipart/form-data">
-    <?= csrf_field() ?>
-
     <div class="row">
-        <!-- FORM METADATA -->
-        <div class="col-lg-4">
-            <div class="card shadow mb-4">
+        <!-- Peta (Full di Mobile, Kolom 8 di Desktop) -->
+        <div class="col-lg-8 col-md-12 mb-4">
+            <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Informasi Lokasi</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Map Editor (Poligon Wilayah)</h6>
                 </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label>Nama Perusahaan</label>
-                        <input type="text" name="companyName" class="form-control" required placeholder="PT. Tambang Maju">
-                    </div>
-                    <div class="form-group">
-                        <label>Nama Lokasi / Blok</label>
-                        <input type="text" name="locationName" class="form-control" required placeholder="Blok Sekotong">
-                    </div>
-                    <div class="form-group">
-                        <label>Nomor Izin (IUP)</label>
-                        <input type="text" name="permit" class="form-control" required placeholder="123/IUP/2024">
-                    </div>
-                    <div class="form-group">
-                        <label>Foto Lokasi</label>
-                        <input type="file" name="foto_lokasi" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label>Dokumen Pendukung (PDF)</label>
-                        <input type="file" name="dokumen_pendukung" class="form-control">
-                    </div>
-                    <hr>
-                    <button type="submit" class="btn btn-primary btn-block">Simpan Seluruh Koordinat</button>
-                    <button type="reset" class="btn btn-secondary btn-block">Reset Form</button>
+                <div class="card-body p-0">
+                    <div id="map" style="width: 100%; height: 70vh;"></div>
                 </div>
             </div>
         </div>
 
-        <!-- PETA & TABEL -->
-        <div class="col-lg-8">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-primary">Gambar Area di Peta</h6>
-                    <input type="color" id="colorPicker" value="#4e73df" class="form-control-sm">
-                </div>
-                <div class="card-body" style="padding: 0;">
-                    <div id="map" style="width: 100%; height: 500px;"></div>
-                </div>
-            </div>
-
+        <!-- Form Input (Tampil di Samping di Desktop, di Bawah di Mobile) -->
+        <div class="col-lg-4 col-md-12">
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Daftar Titik Koordinat</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Data Wilayah Tambang</h6>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive" style="max-height: 300px;">
-                        <table class="table table-bordered" id="coordTable" width="100%" cellspacing="0">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th>No</th>
-                                    <th>Lat (Dec)</th>
-                                    <th>Long (Dec)</th>
-                                    <th>Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="coordInputs">
-                                <!-- Input hidden akan masuk ke sini secara otomatis saat gambar di peta -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <div id="no-data-msg" class="text-center py-3 text-muted">
-                        Silakan gunakan alat gambar (Polygon) di peta untuk mengambil titik.
-                    </div>
+                    <form id="polygonForm" action="<?= base_url('Home/simpanPoligon') ?>" method="POST" enctype="multipart/form-data">
+                        <?= csrf_field() ?>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small font-weight-bold">Nama Perusahaan</label>
+                            <input type="text" name="companyName" class="form-control form-control-sm" required placeholder="Contoh: PT. Sumber Alam">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small font-weight-bold">Nama Lokasi</label>
+                            <input type="text" name="locationName" class="form-control form-control-sm" required placeholder="Dusun/Desa/Kecamatan">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small font-weight-bold">No. Izin IUP/NIB</label>
+                            <input type="text" name="permit" class="form-control form-control-sm" required placeholder="000/IUP/2024">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small font-weight-bold">Foto Lokasi</label>
+                            <div class="custom-file">
+                                <input type="file" name="foto_lokasi" class="custom-file-input" id="fotoFile">
+                                <label class="custom-file-label" for="fotoFile" style="font-size: 11px;">Pilih foto...</label>
+                            </div>
+                        </div>
+
+                        <hr>
+                        <p class="small text-muted font-italic mb-2 text-center">Titik koordinat akan terisi otomatis saat Anda menggambar poligon di peta.</p>
+                        
+                        <div id="coordinateInputs"></div>
+
+                        <button type="submit" class="btn btn-primary btn-sm btn-block shadow-sm mt-3">
+                            <i class="fas fa-save mr-1"></i> Simpan Data SIG
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
-  </form>
 </div>
 
 <!-- LEAFLET & DRAW -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
 <script>
-  // Inisialisasi Peta
-  var map = L.map('map').setView([-8.65, 116.3], 9);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+    var map = L.map('map').setView([-8.65, 116.3], 9);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-  var drawnItems = new L.FeatureGroup();
-  map.addLayer(drawnItems);
+    var drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
 
-  var drawControl = new L.Control.Draw({
-    draw: {
-      polygon: { shapeOptions: { color: document.getElementById('colorPicker').value } },
-      polyline: false, rectangle: false, circle: false, marker: false, circlemarker: false
-    },
-    edit: { featureGroup: drawnItems, remove: true }
-  });
-  map.addControl(drawControl);
-
-  // Saat Poligon Selesai Digambar
-  map.on(L.Draw.Event.CREATED, function (event) {
-    var layer = event.layer;
-    drawnItems.addLayer(layer);
-    
-    var latlngs = layer.getLatLngs()[0];
-    updateInputs(latlngs);
-  });
-
-  // Update Input Hidden & Tabel
-  function updateInputs(latlngs) {
-    var tbody = document.getElementById('coordInputs');
-    var msg = document.getElementById('no-data-msg');
-    tbody.innerHTML = '';
-    msg.style.display = 'none';
-
-    latlngs.forEach(function(latlng, idx) {
-      // 1. Tambah baris ke tabel (visual)
-      var tr = document.createElement('tr');
-      tr.innerHTML = `<td>${idx + 1}</td>
-                      <td>${latlng.lat.toFixed(6)}</td>
-                      <td>${latlng.lng.toFixed(6)}</td>
-                      <td><span class="badge badge-success">OK</span></td>`;
-      tbody.appendChild(tr);
-
-      // 2. Tambah input hidden (untuk form submission)
-      // Kita pecah ke DMS untuk menyesuaikan controller simpanPoligon
-      const dmsLat = toDMS(latlng.lat);
-      const dmsLng = toDMS(latlng.lng);
-
-      tbody.innerHTML += `<input type="hidden" name="lat_deg[]" value="${dmsLat.d}">
-                          <input type="hidden" name="lat_min[]" value="${dmsLat.m}">
-                          <input type="hidden" name="lat_sec[]" value="${dmsLat.s}">
-                          <input type="hidden" name="lat_dir[]" value="${latlng.lat >= 0 ? 'N' : 'S'}">
-                          
-                          <input type="hidden" name="long_deg[]" value="${dmsLng.d}">
-                          <input type="hidden" name="long_min[]" value="${dmsLng.m}">
-                          <input type="hidden" name="long_sec[]" value="${dmsLng.s}">
-                          <input type="hidden" name="long_dir[]" value="${latlng.lng >= 0 ? 'E' : 'W'}">`;
+    var drawControl = new L.Control.Draw({
+        edit: { featureGroup: drawnItems },
+        draw: { polygon: true, polyline: false, rectangle: false, circle: false, marker: false, circlemarker: false }
     });
-  }
+    map.addControl(drawControl);
 
-  function toDMS(deg) {
-    var d = Math.floor(Math.abs(deg));
-    var minFloat = (Math.abs(deg) - d) * 60;
-    var m = Math.floor(minFloat);
-    var s = ((minFloat - m) * 60).toFixed(2);
-    return {d, m, s};
-  }
+    map.on(L.Draw.Event.CREATED, function (e) {
+        var layer = e.layer;
+        drawnItems.clearLayers();
+        drawnItems.addLayer(layer);
+        
+        var latlngs = layer.getLatLngs()[0];
+        updateCoordinateInputs(latlngs);
+    });
 
-  // Ganti Warna
-  document.getElementById('colorPicker').addEventListener('change', function() {
-    var newColor = this.value;
-    drawnItems.eachLayer(function(layer) { layer.setStyle({ color: newColor }); });
-  });
+    function updateCoordinateInputs(latlngs) {
+        var container = document.getElementById('coordinateInputs');
+        container.innerHTML = '';
+        latlngs.forEach(function(latlng, index) {
+            var dmsLat = decimalToDMS(latlng.lat, 'lat');
+            var dmsLng = decimalToDMS(latlng.lng, 'lng');
+            
+            container.innerHTML += `
+                <input type="hidden" name="lat_deg[]" value="${dmsLat.deg}">
+                <input type="hidden" name="lat_min[]" value="${dmsLat.min}">
+                <input type="hidden" name="lat_sec[]" value="${dmsLat.sec}">
+                <input type="hidden" name="lat_dir[]" value="${dmsLat.dir}">
+                <input type="hidden" name="long_deg[]" value="${dmsLng.deg}">
+                <input type="hidden" name="long_min[]" value="${dmsLng.min}">
+                <input type="hidden" name="long_sec[]" value="${dmsLng.sec}">
+                <input type="hidden" name="long_dir[]" value="${dmsLng.dir}">
+            `;
+        });
+    }
+
+    function decimalToDMS(decimal, type) {
+        var absolute = Math.abs(decimal);
+        var degrees = Math.floor(absolute);
+        var minutesNotTruncated = (absolute - degrees) * 60;
+        var minutes = Math.floor(minutesNotTruncated);
+        var seconds = ((minutesNotTruncated - minutes) * 60).toFixed(2);
+        var direction = "";
+        if (type === 'lat') {
+            direction = decimal >= 0 ? "N" : "S";
+        } else {
+            direction = decimal >= 0 ? "E" : "W";
+        }
+        return { deg: degrees, min: minutes, sec: seconds, dir: direction };
+    }
 </script>
 
 <?= $this->endSection() ?>

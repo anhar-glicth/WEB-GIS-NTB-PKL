@@ -3,6 +3,7 @@
 use App\Models\PerusahaanModel;
 use App\Models\LaporanModel;
 use App\Controllers\BaseController;
+use Myth\Auth\Models\UserModel;
 
 class User extends BaseController
 {
@@ -17,7 +18,7 @@ class User extends BaseController
     }
     
     // ======================
-    // 1. DASHBOARD USER (UPDATED)
+    // 1. DASHBOARD USER
     // ======================
     public function index()
     {
@@ -25,14 +26,9 @@ class User extends BaseController
 
         $data = [
             'judul' => 'Dashboard User',
-            
-            // Statistik Kartu Atas
             'totalLaporan'    => $this->laporanModel->where('user_id', $userId)->countAllResults(),
             'approvedLaporan' => $this->laporanModel->where(['user_id' => $userId, 'status' => 'acc'])->countAllResults(),
             'rejectedLaporan' => $this->laporanModel->where(['user_id' => $userId, 'status' => 'tolak'])->countAllResults(),
-            
-            // --- DATA UTAMA TABEL ---
-            // Mengambil semua laporan milik user ini, diurutkan dari yang terbaru
             'daftarLaporan'   => $this->laporanModel->where('user_id', $userId)
                                                     ->orderBy('created_at', 'DESC')
                                                     ->findAll(),
@@ -92,7 +88,6 @@ class User extends BaseController
             'user_id' => user_id(),
             'nama_blok' => $this->request->getPost('nama_blok'),
             'luas_ha' => $this->request->getPost('luas_ha'),
-            // Field Data Tambang
             'sd_tereka_volume' => $this->request->getPost('sd_tereka_volume'),
             'sd_tereka_tonase' => $this->request->getPost('sd_tereka_tonase'),
             'sd_terunjuk_volume' => $this->request->getPost('sd_terunjuk_volume'),
@@ -107,19 +102,16 @@ class User extends BaseController
             'prod_bulanan' => $this->request->getPost('prod_bulanan'),
             'prod_tahunan' => $this->request->getPost('prod_tahunan'),
             'umur_tambang' => $this->request->getPost('umur_tambang'),
-            
-            // Reset Status
             'status' => 'pending',
-            'catatan_penolakan' => null // Reset catatan jika user upload ulang
+            'catatan_penolakan' => null
         ]);
 
-        // Redirect ke Dashboard agar user melihat tabel statusnya
         return redirect()->to(base_url('user'))->with('success', 'Data tambang berhasil disimpan! Status saat ini: Pending.');
     }
 
-    // ==========================================================
-    // 4. FORM INPUT IDENTITAS PERUSAHAAN
-    // ==========================================================
+    // ======================
+    // 4. IDENTITAS PERUSAHAAN
+    // ======================
     public function inputPerusahaan()
     {
         $userId = user_id();
@@ -134,33 +126,22 @@ class User extends BaseController
         return view('user/input-perusahaan', $data);
     }
 
-    // ==========================================================
-    // 5. SIMPAN IDENTITAS PERUSAHAAN
-    // ==========================================================
     public function saveInputPerusahaan()
     {
         $userId = user_id();
-
         $rules = [
             'nama_perusahaan'   => 'required|min_length[3]',
             'alamat_perusahaan' => 'required',
-            'npwp'              => 'permit_empty',
             'jenis_usaha'       => 'required',
             'tahun_berdiri'     => 'required|numeric',
-            'nib'               => 'permit_empty',
-            'izin_usaha'        => 'permit_empty',
-            'masa_berlaku'      => 'permit_empty|valid_date',
-            'nama_direktur'     => 'required',
             'email_perusahaan'  => 'required|valid_email',
-            'no_telepon'        => 'required|min_length[8]',
-            'website'           => 'permit_empty|valid_url_strict'
+            'no_telepon'        => 'required|min_length[8]'
         ];
 
         if (!$this->validate($rules)) {
              $perusahaanData = [
                 'nama_perusahaan' => $this->request->getPost('nama_perusahaan'),
                 'alamat_perusahaan' => $this->request->getPost('alamat_perusahaan'),
-                // ... (populate old input)
                 'nama_direktur' => $this->request->getPost('nama_direktur'),
                 'email_perusahaan' => $this->request->getPost('email_perusahaan'),
                 'no_telepon' => $this->request->getPost('no_telepon'),
@@ -169,7 +150,7 @@ class User extends BaseController
 
             return view('user/input-perusahaan', [
                 'validation' => $this->validator,
-                'judul' => 'Form Identitas Perusahaan',
+                'judul' => 'Edit Identitas Perusahaan',
                 'perusahaan' => $perusahaanData 
             ]);
         }
@@ -201,5 +182,62 @@ class User extends BaseController
         }
 
         return redirect()->to(base_url('user/input-perusahaan'))->with('success', $message);
+    }
+
+    // ======================
+    // 5. MANAJEMEN PROFILE USER (PASSWORD SUPPORT)
+    // ======================
+    public function profile(): string
+    {
+        $data['judul'] = 'Account Settings';
+        $db = \Config\Database::connect();
+        $builder = $db->table('users');
+        $builder->select('users.id as userid, users.username, users.email, auth_groups.name as role');
+        $builder->join('auth_groups_users', 'users.id = auth_groups_users.user_id', 'left');
+        $builder->join('auth_groups', 'auth_groups.id = auth_groups_users.group_id', 'left');
+        $builder->where('users.id', user_id());
+
+        $query = $builder->get();
+        $data['user'] = $query->getRow();
+
+        return view('user/profile', $data);
+    }
+
+    public function editProfile(): string
+    {
+        $data['judul'] = 'Edit Account Profile';
+        $db = \Config\Database::connect();
+        $builder = $db->table('users');
+        $builder->where('id', user_id());
+        $data['user'] = $builder->get()->getRow();
+
+        return view('user/edit_profile', $data);
+    }
+
+    public function updateProfile()
+    {
+        $rules = [
+            'username' => 'required|min_length[3]|alpha_numeric_space',
+            'email'    => 'required|valid_email',
+            'password' => 'permit_empty|min_length[8]'
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $users = new UserModel();
+        $user = $users->find(user_id());
+
+        $user->username = $this->request->getPost('username');
+        $user->email = $this->request->getPost('email');
+
+        if ($this->request->getPost('password')) {
+            $user->setPassword($this->request->getPost('password'));
+        }
+
+        $users->save($user);
+
+        return redirect()->to('/user/profile')->with('success', 'Akun & Password berhasil diperbarui!');
     }
 }
