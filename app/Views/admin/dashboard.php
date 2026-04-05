@@ -5,23 +5,24 @@
     <!-- Row Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800 font-weight-bold">Admin Dashboard</h1>
-        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm rounded-pill px-3">
-            <i class="fas fa-download fa-sm text-white-50 mr-1"></i> Generate Report
-        </a>
+        <div class="d-none d-sm-inline-block">
+            <span class="badge badge-primary-light text-primary px-3 py-2 rounded-pill shadow-sm small">
+                <i class="fas fa-calendar-day mr-1"></i> <?= date('d M Y') ?>
+            </span>
+        </div>
     </div>
 
-    <!-- STATS CARDS -->
+    <!-- STATS CARDS (Dinamis & Real-time) -->
     <div class="row">
 
         <!-- Total User Card -->
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2 border-0 rounded-lg">
+            <div class="card border-0 border-left-primary shadow h-100 py-2 rounded-lg transition-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Total Pengguna</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $total_users ?></div>
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Pengguna</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= number_format($total_users) ?></div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-users fa-2x text-gray-300"></i>
@@ -31,78 +32,67 @@
             </div>
         </div>
 
-        <!-- Total Groups Card -->
+        <!-- Role Card -->
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2 border-0 rounded-lg">
+            <div class="card border-0 border-left-success shadow h-100 py-2 rounded-lg transition-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Role / Jabatan</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= $total_groups ?></div>
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Role / Jabatan</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= number_format($total_groups) ?></div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-user-tag fa-2x text-gray-300"></i>
+                            <i class="fas fa-user-shield fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Placeholder for Reports -->
+        <!-- Pending Reports Card -->
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2 border-0 rounded-lg">
+            <div class="card border-0 border-left-warning shadow h-100 py-2 rounded-lg transition-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Laporan
-                            </div>
-                            <div class="row no-gutters align-items-center">
-                                <div class="col-auto">
-                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">12</div>
-                                </div>
-                                <div class="col">
-                                    <div class="progress progress-sm mr-2">
-                                        <div class="progress-bar bg-info" role="progressbar"
-                                            style="width: 50%" aria-valuenow="50" aria-valuemin="0"
-                                            aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-                            </div>
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Persetujuan Pending</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= number_format($pending_laporan ?? 0) ?></div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                            <i class="fas fa-hourglass-half fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Map Points -->
+        <!-- Approved Reports Card -->
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2 border-0 rounded-lg">
+            <div class="card border-0 border-left-info shadow h-100 py-2 rounded-lg transition-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Lokasi Tambang</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">24</div>
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Laporan Disetujui</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800"><?= number_format($acc_laporan ?? 0) ?></div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-map-marked-alt fa-2x text-gray-300"></i>
+                            <i class="fas fa-file-signature fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
     </div>
 
-    <!-- RECENT ACTIVITIES -->
+    <!-- RECENT ACTIVITIES & INFO -->
     <div class="row">
+        <!-- Pengguna Baru -->
         <div class="col-lg-8">
             <div class="card shadow mb-4 border-0 rounded-lg overflow-hidden">
-                <div class="card-header py-3 bg-white">
+                <div class="card-header py-3 bg-white d-flex align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-primary">Pengguna Terbaru</h6>
+                    <a href="<?= base_url('admin/user-list') ?>" class="small font-weight-bold text-primary">Lihat Semua <i class="fas fa-arrow-right ml-1"></i></a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -126,11 +116,11 @@
                                             <?= strtoupper($user->role) ?>
                                         </span>
                                     </td>
-                                    <td class="text-muted"><?= date('d M Y, H:i', strtotime($user->created_at)) ?></td>
+                                    <td class="text-muted"><?= date('d M Y', strtotime($user->created_at)) ?></td>
                                     <td class="text-right pr-4">
-                                        <button class="btn btn-sm btn-light border p-1 px-2 rounded-lg" title="Lihat Profil">
+                                        <a href="<?= base_url('admin/detail/' . ($user->userid ?? '')); ?>" class="btn btn-sm btn-light border p-1 px-2 rounded-lg" title="Lihat Profil">
                                             <i class="fas fa-chevron-right fa-xs"></i>
-                                        </button>
+                                        </a>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
@@ -138,24 +128,19 @@
                         </table>
                     </div>
                 </div>
-                <div class="card-footer bg-white text-center py-2">
-                    <a href="<?= base_url('admin/user-list') ?>" class="small font-weight-bold text-primary">Lihat Semua User <i class="fas fa-arrow-right ml-1"></i></a>
-                </div>
             </div>
         </div>
 
-        <!-- INFO CARD -->
+        <!-- Info Card Admin -->
         <div class="col-lg-4">
-            <div class="card shadow mb-4 border-0 rounded-lg bg-gradient-primary text-white">
-                <div class="card-body text-center py-5">
+            <div class="card shadow mb-4 border-0 rounded-lg bg-primary text-white overflow-hidden shadow-lg">
+                <div class="card-body text-center py-5 position-relative">
                     <div class="mb-4">
-                        <div class="avatar-lg mx-auto bg-white-translucent d-flex align-items-center justify-content-center rounded-circle shadow" style="width: 70px; height: 70px;">
-                            <i class="fas fa-shield-alt fa-2x text-white"></i>
-                        </div>
+                         <i class="fas fa-shield-alt fa-3x mb-3 text-white-50"></i>
                     </div>
-                    <h5 class="font-weight-bold">Halo, Administrator!</h5>
-                    <p class="small opacity-8 px-4">Selamat datang kembali di sistem GIS-NTB. Anda memiliki kontrol penuh atas manajemen data dan keamanan akun.</p>
-                    <a href="<?= base_url('admin/settings') ?>" class="btn btn-light btn-sm rounded-pill px-4 font-weight-bold text-primary shadow-sm mt-3">Konfigurasi Situs</a>
+                    <h5 class="font-weight-bold">Administrator Panel</h5>
+                    <p class="small opacity-8 px-3">Selamat datang di pusat kendali SIG-NTB. Anda memiliki otoritas penuh untuk mengelola data tambang dan akun pengguna.</p>
+                    <a href="<?= base_url('admin/settings') ?>" class="btn btn-light btn-sm rounded-pill px-4 font-weight-bold text-primary mt-3">Settings</a>
                 </div>
             </div>
         </div>
@@ -163,14 +148,15 @@
 </div>
 
 <style>
+    .rounded-lg { border-radius: 12px !important; }
     .border-left-primary { border-left: .25rem solid #4e73df!important; }
     .border-left-success { border-left: .25rem solid #1cc88a!important; }
-    .border-left-info { border-left: .25rem solid #36b9cc!important; }
     .border-left-warning { border-left: .25rem solid #f6c23e!important; }
-    .bg-gradient-primary { background: linear-gradient(180deg, #4e73df 10%, #224abe 100%); background-size: cover; }
-    .bg-white-translucent { background: rgba(255,255,255,0.2); }
-    .opacity-8 { opacity: 0.8; }
+    .border-left-info { border-left: .25rem solid #36b9cc!important; }
     .badge-primary-light { background-color: rgba(78, 115, 223, 0.1); }
+    .opacity-8 { opacity: 0.8; }
+    .transition-card { transition: transform 0.2s ease; }
+    .transition-card:hover { transform: translateY(-3px); }
 </style>
 
 <?= $this->endSection() ?>

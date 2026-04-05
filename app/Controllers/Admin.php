@@ -20,6 +20,13 @@ class Admin extends BaseController
         $data['title'] = 'Admin Dashboard';
         $data['total_users'] = $this->db->table('users')->countAllResults();
         $data['total_groups'] = $this->db->table('auth_groups')->countAllResults();
+
+        // TAMBAHKAN STATISTIK LAPORAN GLOBAL
+        $laporanModel = new LaporanModel();
+        $data['total_laporan']   = $laporanModel->countAllResults();
+        $data['pending_laporan'] = $laporanModel->whereIn('status', ['pending', 'Pending', 'Menunggu', ''])->countAllResults();
+        $data['acc_laporan']     = $laporanModel->whereIn('status', ['acc', 'ACC', 'Disetujui', 'disetujui'])->countAllResults();
+        $data['tolak_laporan']   = $laporanModel->whereIn('status', ['tolak', 'Tolak', 'Ditolak', 'ditolak'])->countAllResults();
         
         $this->builder->select('username, email, name as role, users.created_at');
         $this->builder->join('auth_groups_users', 'auth_groups_users.user_id = users.id');
