@@ -197,8 +197,8 @@ class Auth extends \Myth\Auth\Config\Auth
      *
      * @var string|null Name of the ResetterInterface class
      */
-    // public $activeResetter = 'Myth\Auth\Authentication\Resetters\EmailResetter';
- public $activeResetter = false;
+    public $activeResetter = 'Myth\Auth\Authentication\Resetters\EmailResetter';
+
     /**
      * --------------------------------------------------------------------
      * Allow Persistent Login Cookies (Remember me)
@@ -212,7 +212,7 @@ class Auth extends \Myth\Auth\Config\Auth
      *
      * @var bool
      */
-    public $allowRemembering = false;
+    public $allowRemembering = true;
 
     /**
      * --------------------------------------------------------------------

@@ -231,14 +231,48 @@
                             <label class="small font-weight-bold text-primary">Email atau Username</label>
                             <input type="text" class="form-control" name="login" placeholder="Masukkan ID Anda" required>
                         </div>
-                        <div class="form-group mb-4">
+                        <div class="form-group mb-2">
                             <label class="small font-weight-bold text-primary">Kata Sandi</label>
                             <input type="password" name="password" class="form-control" placeholder="********" required>
+                        </div>
+                        <div class="text-right mb-4">
+                            <a href="javascript:void(0)" onclick="$('#loginModal').modal('hide'); $('#forgotModal').modal('show');" class="small font-weight-bold text-primary text-decoration-none">
+                                <i class="fas fa-question-circle mr-1"></i> Lupa Kata Sandi?
+                            </a>
                         </div>
                         <button type="submit" class="btn btn-primary btn-block shadow">Masuk Sekarang</button>
                     </form>
                     <div class="text-center mt-4 small">
-                        <p class="text-muted mb-1">Belum punya akun? <a href="javascript:void(0)" onclick="$('#loginModal').modal('hide'); $('#registerModal').modal('show');" class="font-weight-bold">Daftar Perusahaan</a></p>
+                        <p class="text-muted mb-0">Belum punya akun? <a href="javascript:void(0)" onclick="$('#loginModal').modal('hide'); $('#registerModal').modal('show');" class="font-weight-bold">Daftar Perusahaan</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORGOT PASSWORD MODAL (NEW) -->
+    <div class="modal fade" id="forgotModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Pemulihan Akun</h5>
+                    <p class="mb-0">Masukkan email untuk reset password</p>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: absolute; top: 20px; right: 20px;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form action="<?= url_to('forgot') ?>" method="post">
+                        <?= csrf_field() ?>
+                        <div class="form-group mb-4">
+                            <label class="small font-weight-bold text-primary">Alamat Email Terdaftar</label>
+                            <input type="email" class="form-control" name="email" placeholder="contoh@gmail.com" required>
+                            <small class="text-muted italic">Instruksi akan dikirim ke email ini.</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block shadow">Kirim Link Pemulihan</button>
+                    </form>
+                    <div class="text-center mt-4 small">
+                        <a href="javascript:void(0)" onclick="$('#forgotModal').modal('hide'); $('#loginModal').modal('show');" class="font-weight-bold"><i class="fas fa-arrow-left mr-1"></i> Kembali ke Login</a>
                     </div>
                 </div>
             </div>
@@ -387,10 +421,15 @@
 
         // AUTH MODAL AUTOMATION
         $(document).ready(function() {
-            <?php if (session()->has('error') || (session()->has('errors') && !old('email'))) : ?>
+            // Jika ada error login (tidak ada input email tapi ada error)
+            <?php if ((session()->has('error') || session()->has('errors')) && !old('email')) : ?>
                 $('#loginModal').modal('show');
+            // Jika ada error registrasi (ada input email)
             <?php elseif (session()->has('errors') && old('email')) : ?>
                 $('#registerModal').modal('show');
+            // Jika ada pesan sukses pengiriman email pemulihan
+            <?php elseif (session()->has('message')) : ?>
+                alert("<?= session('message') ?>");
             <?php endif; ?>
         });
     </script>

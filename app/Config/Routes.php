@@ -21,13 +21,17 @@ $routes->get('authfix/pangkatAdmin', 'AuthFix::pangkatAdmin');
 // ========================
 // AUTH ROUTES
 // ========================
-$routes->get('login', 'AuthController::login');
+$routes->get('login', 'AuthController::login', ['as' => 'login']);
 $routes->post('login', 'AuthController::attemptLogin');
-$routes->get('register', 'AuthController::register');
+$routes->get('register', 'AuthController::register', ['as' => 'register']);
 $routes->post('register', 'AuthController::attemptRegister');
-$routes->get('logout', 'AuthController::logout');
-$routes->get('forgotpassword', 'AuthController::forgotpassword');
-$routes->get('resetpassword', 'AuthController::resetpassword');
+$routes->get('logout', 'AuthController::logout', ['as' => 'logout']);
+
+// Forgot & Reset Password Routes (Sesuai Nama di Config/Auth.php)
+$routes->get('forgot', 'AuthController::forgotPassword', ['as' => 'forgot']);
+$routes->post('forgot', 'AuthController::attemptForgot');
+$routes->get('reset-password', 'AuthController::resetPassword', ['as' => 'reset-password']);
+$routes->post('reset-password', 'AuthController::attemptReset');
 
 // ========================
 // ADMIN ROUTES
