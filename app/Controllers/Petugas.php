@@ -17,9 +17,10 @@ class Petugas extends BaseController
         $data = [
             'title' => 'Dashboard Manajemen Wilayah',
             'totalLaporan' => $model->countAllResults(),
-            'laporanPending' => $model->where('status', 'Pending')->countAllResults(),
-            'laporanAcc' => $model->where('status', 'ACC')->countAllResults(),
-            'laporanTolak' => $model->where('status', 'Ditolak')->countAllResults(),
+            // Tangkap semua variasi penulisan status
+            'laporanPending' => $model->whereIn('status', ['pending', 'Pending', 'Menunggu'])->countAllResults(),
+            'laporanAcc'     => $model->whereIn('status', ['acc', 'ACC', 'Disetujui', 'disetujui'])->countAllResults(),
+            'laporanTolak'   => $model->whereIn('status', ['tolak', 'Tolak', 'Ditolak', 'ditolak'])->countAllResults(),
             'laporanTerbaru' => $model->select('laporan.*, users.username, users.email')
                                ->join('users', 'users.id = laporan.user_id')
                                ->orderBy('laporan.created_at', 'DESC')
@@ -123,10 +124,11 @@ class Petugas extends BaseController
             return redirect()->back()->with('error', 'Catatan: File tidak ditemukan di database.');
         }
 
-        $filepath = 'uploads/' . $laporan['file'];
+        // Pastikan path sesuai dengan tempat penyimpanan (uploads/dokumen/)
+        $filepath = 'uploads/dokumen/' . $laporan['file'];
 
         if (!file_exists($filepath)) {
-            return redirect()->back()->with('error', 'Maaf, file fisik tidak ditemukan di server.');
+            return redirect()->back()->with('error', 'Maaf, file fisik (' . $laporan['file'] . ') tidak ditemukan di folder uploads/dokumen/.');
         }
 
         return $this->response->download($filepath, null);

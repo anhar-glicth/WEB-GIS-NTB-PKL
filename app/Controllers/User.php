@@ -83,11 +83,32 @@ class User extends BaseController
             return view('user/v_input', $data);
         }
 
-        // Simpan Data
+        // 1. Ambil File Dokumen (Jika Ada)
+        $fileDokumen = $this->request->getFile('dokumen_laporan');
+        $namaFile = null;
+
+        // 2. Validasi & Proses Upload
+        if ($fileDokumen && $fileDokumen->isValid() && !$fileDokumen->hasMoved()) {
+            // Validasi format & ukuran (5MB)
+            $rules = [
+                'dokumen_laporan' => 'max_size[dokumen_laporan,5120]|ext_in[dokumen_laporan,pdf,doc,docx,xls,xlsx,csv]'
+            ];
+            
+            if (!$this->validate($rules)) {
+                return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            }
+
+            // Simpan ke public/uploads/dokumen/ dengan nama acak agar tidak bentrok
+            $namaFile = $fileDokumen->getRandomName();
+            $fileDokumen->move('uploads/dokumen/', $namaFile);
+        }
+
+        // 3. Simpan Data ke Database
         $this->laporanModel->save([
             'user_id' => user_id(),
             'nama_blok' => $this->request->getPost('nama_blok'),
             'luas_ha' => $this->request->getPost('luas_ha'),
+            'file'    => $namaFile, // Simpan nama file lampiran
             'sd_tereka_volume' => $this->request->getPost('sd_tereka_volume'),
             'sd_tereka_tonase' => $this->request->getPost('sd_tereka_tonase'),
             'sd_terunjuk_volume' => $this->request->getPost('sd_terunjuk_volume'),
@@ -106,7 +127,7 @@ class User extends BaseController
             'catatan_penolakan' => null
         ]);
 
-        return redirect()->to(base_url('user'))->with('success', 'Data tambang berhasil disimpan! Status saat ini: Pending.');
+        return redirect()->to(base_url('user'))->with('success', 'Data & Dokumen tambang berhasil disimpan! Status saat ini: Pending.');
     }
 
     // ======================

@@ -104,10 +104,13 @@
                                     <?= esc($row['nama_blok'] ?? (substr($row['judul'] ?? 'Laporan Tanpa Judul', 0, 30))); ?>
                                 </td>
                                 <td class="py-4 text-center">
-                                    <?php if(strtolower($row['status'] ?? '') == 'acc'): ?>
-                                        <span class="badge badge-soft-success px-3 py-2 rounded-pill"><i class="fas fa-check-circle mr-1"></i> ACC</span>
-                                    <?php elseif(strtolower($row['status'] ?? '') == 'tolak'): ?>
-                                        <span class="badge badge-soft-danger px-3 py-2 rounded-pill"><i class="fas fa-times-circle mr-1"></i> TOLAK</span>
+                                    <?php 
+                                        $status = strtolower($row['status'] ?? ''); 
+                                        if(in_array($status, ['acc', 'disetujui'])): 
+                                    ?>
+                                        <span class="badge badge-soft-success px-3 py-2 rounded-pill"><i class="fas fa-check-circle mr-1"></i> DISETUJUI</span>
+                                    <?php elseif(in_array($status, ['tolak', 'ditolak'])): ?>
+                                        <span class="badge badge-soft-danger px-3 py-2 rounded-pill"><i class="fas fa-times-circle mr-1"></i> DITOLAK</span>
                                     <?php else: ?>
                                         <span class="badge badge-soft-warning px-3 py-2 rounded-pill"><i class="fas fa-hourglass-half mr-1 text-dark"></i> PENDING</span>
                                     <?php endif; ?>

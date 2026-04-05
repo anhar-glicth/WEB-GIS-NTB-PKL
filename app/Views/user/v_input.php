@@ -21,7 +21,8 @@
 
     <?php helper('form'); ?>
 
-    <form action="<?= base_url('user/input-tambang') ?>" method="post">
+    <!-- Gunakan enctype="multipart/form-data" agar bisa upload file -->
+    <form action="<?= base_url('user/input-tambang') ?>" method="post" enctype="multipart/form-data">
         <?= csrf_field() ?>
 
         <!-- INFORMASI UMUM -->
@@ -184,6 +185,37 @@
                 </div>
             </div>
         </div>
+
+        <!-- Produksi ends above -->
+
+        <!-- DOKUMEN LAMPIRAN (FITUR BARU) -->
+        <div class="card shadow mb-4 border-left-success">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-success"><i class="fas fa-file-upload mr-2"></i>Lampiran Dokumen Tambang</h6>
+                <span class="badge badge-success">Ekstensi: PDF, Word, Excel</span>
+            </div>
+            <div class="card-body">
+                <div class="form-group row">
+                    <label for="dokumen_laporan" class="col-sm-4 col-form-label font-weight-bold">Unggah Dokumen (Opsional):</label>
+                    <div class="col-sm-8">
+                        <div class="custom-file">
+                            <input type="file" name="dokumen_laporan" class="custom-file-input" id="dokumen_laporan" 
+                                accept=".pdf,.doc,.docx,.xls,.xlsx">
+                            <label class="custom-file-label" id="file-label-text" for="dokumen_laporan">Pilih file PDF/Word/Excel...</label>
+                        </div>
+                        <small class="text-muted mt-2 d-block">Maksimal ukuran file: <b>5MB</b>. Format: .pdf, .doc, .docx, .xls, .xlsx</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Script sederhana untuk mendeteksi perubahan file dan mengubah label
+            document.getElementById('dokumen_laporan').addEventListener('change', function(e){
+                var fileName = e.target.files[0].name;
+                document.getElementById('file-label-text').innerHTML = fileName;
+            });
+        </script>
 
         <!-- TOMBOL AKSI -->
         <div class="card shadow mb-5 border-0 rounded-lg">

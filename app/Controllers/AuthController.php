@@ -249,10 +249,11 @@ class AuthController extends Controller
         }
 
         // --- AUTO-LOGIN & LANGSUNG KE DASHBOARD ---
-        $this->auth->login($user);
+        $userId = $users->getInsertID();
+        $this->auth->loginById($userId);
 
         return redirect()
-            ->to(base_url('user'))
+            ->to('/user')
             ->with('message', 'Registrasi Berhasil! Selamat datang di Dashboard Sistem.');
     }
 
