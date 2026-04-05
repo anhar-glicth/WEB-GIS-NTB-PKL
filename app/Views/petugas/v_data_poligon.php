@@ -50,18 +50,21 @@
                                 </td>
                             </tr>
                         <?php else: ?>
-                            <?php $i = 1; foreach ($poligon as $permit => $data) : ?>
+                            <?php $i = 1; foreach ($poligon as $groupKey => $data) : ?>
                             <tr class="transition-all hover-bg-light">
                                 <td class="text-center px-4 font-weight-bold text-muted"><?= $i++; ?></td>
                                 <td class="py-4">
                                     <div class="font-weight-bold text-dark h6 mb-1"><?= esc($data['companyName']); ?></div>
-                                    <div class="text-primary font-weight-bold small"><span class="badge badge-primary-soft">Izin: <?= $permit ?></span></div>
+                                    <div class="text-primary font-weight-bold small"><span class="badge badge-primary-soft">Izin: <?= $data['permit'] ?></span></div>
                                     <div class="mt-1"><small class="text-muted"><i class="fas fa-map-marker-alt mr-1"></i> Site: <?= esc($data['locationName']); ?></small></div>
                                 </td>
                                 <td class="text-center py-4">
-                                    <?php if($data['status'] == 'Pending'): ?>
+                                    <?php 
+                                        $st = strtolower($data['status'] ?? ''); 
+                                        if($st == 'pending' || $st == ''): 
+                                    ?>
                                         <div class="status-pill status-pending"><i class="fas fa-clock mr-1"></i> WAITING</div>
-                                    <?php elseif($data['status'] == 'Disetujui'): ?>
+                                    <?php elseif($st == 'disetujui' || $st == 'verified'): ?>
                                         <div class="status-pill status-approved"><i class="fas fa-check-circle mr-1"></i> VERIFIED</div>
                                     <?php else: ?>
                                         <div class="status-pill status-rejected"><i class="fas fa-times-circle mr-1"></i> REJECTED</div>
@@ -86,20 +89,21 @@
                                     </div>
                                 </td>
                                 <td class="text-center py-4 px-4">
-                                    <?php if($data['status'] == 'Pending'): ?>
+                                    <?php if(strtolower($data['status'] ?? '') == 'pending' || ($data['status'] ?? '') == ''): ?>
                                         <div class="d-flex flex-column gap-2">
-                                            <a href="<?= base_url('petugas/data-poligon/acc/' . $permit); ?>" 
+                                            <!-- Encode Permit & Location for URL safety -->
+                                            <a href="<?= base_url('petugas/data-poligon/acc/' . bin2hex($data['permit']) . '/' . bin2hex($data['locationName'])); ?>" 
                                                class="btn btn-primary btn-sm rounded-pill font-weight-bold mb-2 shadow-sm py-2" 
                                                onclick="return confirm('Apakah Anda yakin data ini sudah valid?');">
                                                 <i class="fas fa-check-double mr-1"></i> TERIMA (ACC)
                                             </a>
                                             <button type="button" class="btn btn-outline-warning btn-sm rounded-pill font-weight-bold py-2" 
-                                                    data-toggle="modal" data-target="#tolakModal<?= str_replace('/', '_', $permit) ?>">
+                                                    data-toggle="modal" data-target="#tolakModal<?= $i ?>">
                                                 <i class="fas fa-comment-slash mr-1"></i> TOLAK AREA
                                             </button>
                                         </div>
                                     <?php endif; ?>
-                                    <a href="<?= base_url('petugas/data-poligon/hapus/' . $permit); ?>" 
+                                    <a href="<?= base_url('petugas/data-poligon/hapus/' . bin2hex($data['permit']) . '/' . bin2hex($data['locationName'])); ?>" 
                                        class="btn btn-link text-danger btn-sm mt-2 text-decoration-none small" 
                                        onclick="return confirm('Hapus permanen area ini?');">
                                         <i class="fas fa-trash-alt mr-1"></i> Hapus Data
@@ -108,9 +112,9 @@
                             </tr>
 
                             <!-- MODAL TOLAK (REFINED) -->
-                            <div class="modal fade" id="tolakModal<?= str_replace('/', '_', $permit) ?>" tabindex="-1" role="dialog" aria-hidden="true">
+                            <div class="modal fade" id="tolakModal<?= $i ?>" tabindex="-1" role="dialog" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered" role="document">
-                                    <form action="<?= base_url('petugas/data-poligon/tolak/' . $permit) ?>" method="POST" class="w-100">
+                                    <form action="<?= base_url('petugas/data-poligon/tolak/' . bin2hex($data['permit']) . '/' . bin2hex($data['locationName'])) ?>" method="POST" class="w-100">
                                         <?= csrf_field() ?>
                                         <div class="modal-content border-0 shadow-2xl rounded-3xl" style="border-radius: 1.5rem !important;">
                                             <div class="modal-header bg-white border-0 py-4 px-4">

@@ -20,11 +20,13 @@ class PetugasPoligon extends BaseController
         // Kita kelompokkan secara manual di Controller agar lebih fleksibel
         $grouped = [];
         foreach ($allData as $row) {
-            $key = $row['permit'];
+            // Gabungkan Permit + Nama Lokasi agar area yang berbeda tidak bertumpuk
+            $key = $row['permit'] . '_' . ($row['locationName'] ?? 'NoName');
+            
             if (!isset($grouped[$key])) {
                 $grouped[$key] = [
                     'companyName'       => $row['companyName'],
-                    'locationName'      => $row['locationName'],
+                    'locationName'      => $row['locationName'] ?? 'Tidak Diketahui',
                     'permit'            => $row['permit'],
                     'status'            => $row['status'],
                     'catatan_petugas'   => $row['catatan_petugas'],
@@ -47,51 +49,65 @@ class PetugasPoligon extends BaseController
     }
 
     /**
-     * SETUJUI KOORDINAT BERDASARKAN PERMIT
+     * SETUJUI KOORDINAT BERDASARKAN PERMIT & LOKASI
      */
-    public function acc($permit)
+    public function acc($permitHex, $locationHex)
     {
-        $model = new ModelKoordinat();
-        // Update SEMUA baris yang punya nomor izin (permit) yang sama
-        $model->where('permit', $permit)->set([
-            'status'          => 'Disetujui',
-            'catatan_petugas' => 'Data koordinat telah diverifikasi valid dan sesuai dengan dokumen.'
-        ])->update();
+        $permit   = hex2bin($permitHex);
+        $location = hex2bin($locationHex);
         
-        return redirect()->to(base_url('petugas/data-poligon'))->with('success', '✅ SELURUH AREA (' . $permit . ') telah DISETUJUI dan langsung muncul di peta.');
+        $model = new ModelKoordinat();
+        // Update SEMUA titik yang punya permit DAN lokasi yang sama
+        $model->where('permit', $permit)
+              ->where('locationName', $location)
+              ->set([
+                  'status'          => 'Disetujui',
+                  'catatan_petugas' => 'Data koordinat telah diverifikasi valid dan sesuai dengan lokasi ' . $location
+              ])->update();
+        
+        return redirect()->to(base_url('petugas/data-poligon'))->with('success', '✅ AREA (' . $permit . ' - ' . $location . ') telah DISETUJUI.');
     }
 
     /**
-     * TOLAK KOORDINAT BERDASARKAN PERMIT
+     * TOLAK KOORDINAT BERDASARKAN PERMIT & LOKASI
      */
-    public function tolak($permit)
+    public function tolak($permitHex, $locationHex)
     {
+        $permit   = hex2bin($permitHex);
+        $location = hex2bin($locationHex);
+        
         $model = new ModelKoordinat();
-        $catatan = $this->request->getPost('catatan') ?: 'Data koordinat tidak valid atau kurang lengkap.';
+        $catatan = $this->request->getPost('catatan') ?: 'Data koordinat tidak valid untuk lokasi ' . $location;
         
-        // Update SEMUA baris yang punya nomor izin yang sama
-        $model->where('permit', $permit)->set([
-            'status'          => 'Ditolak',
-            'catatan_petugas' => $catatan
-        ])->update();
+        $model->where('permit', $permit)
+              ->where('locationName', $location)
+              ->set([
+                  'status'          => 'Ditolak',
+                  'catatan_petugas' => $catatan
+              ])->update();
         
-        return redirect()->to(base_url('petugas/data-poligon'))->with('error', '❌ AREA (' . $permit . ') telah DITOLAK.');
+        return redirect()->to(base_url('petugas/data-poligon'))->with('error', '❌ AREA (' . $permit . ' - ' . $location . ') telah DITOLAK.');
     }
 
     /**
-     * Hapus Data Berdasarkan Permit
+     * Hapus Data Berdasarkan Permit & Lokasi
      */
-    public function hapus($permit)
+    public function hapus($permitHex, $locationHex)
     {
+        $permit   = hex2bin($permitHex);
+        $location = hex2bin($locationHex);
+        
         $model = new ModelKoordinat();
-        $data = $model->where('permit', $permit)->first();
+        $data = $model->where('permit', $permit)->where('locationName', $location)->first();
         
         if ($data) {
+            // Hapus file foto jika ada
             if ($data['foto_lokasi'] && file_exists('uploads/lokasi/' . $data['foto_lokasi'])) {
                 @unlink('uploads/lokasi/' . $data['foto_lokasi']);
             }
-            $model->where('permit', $permit)->delete();
-            return redirect()->to(base_url('petugas/data-poligon'))->with('success', 'Data area berhasil dihapus.');
+            
+            $model->where('permit', $permit)->where('locationName', $location)->delete();
+            return redirect()->to(base_url('petugas/data-poligon'))->with('success', 'Data area (' . $location . ') berhasil dihapus.');
         }
 
         return redirect()->to(base_url('petugas/data-poligon'))->with('error', 'Data tidak ditemukan.');

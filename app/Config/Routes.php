@@ -111,11 +111,11 @@ $routes->group('petugas', ['filter' => 'role:petugas'], function($routes) {
     $routes->get('editProfile', 'Petugas::editProfile');
     $routes->post('updateProfile', 'Petugas::updateProfile');
 
-    // Data Poligon (Hasil Inputan User) - Digabung kesini agar rapi
+    // Data Poligon (Hasil Inputan User) - Mendukung Filter Lokasi
     $routes->get('data-poligon', 'PetugasPoligon::index');
-    $routes->get('data-poligon/acc/(:any)', 'PetugasPoligon::acc/$1');
-    $routes->post('data-poligon/tolak/(:any)', 'PetugasPoligon::tolak/$1');
-    $routes->get('data-poligon/hapus/(:any)', 'PetugasPoligon::hapus/$1');
+    $routes->get('data-poligon/acc/(:any)/(:any)', 'PetugasPoligon::acc/$1/$2');
+    $routes->post('data-poligon/tolak/(:any)/(:any)', 'PetugasPoligon::tolak/$1/$2');
+    $routes->get('data-poligon/hapus/(:any)/(:any)', 'PetugasPoligon::hapus/$1/$2');
 });
 
 // ========================
