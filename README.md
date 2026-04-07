@@ -25,8 +25,8 @@ Gunakan daftar akun di bawah ini untuk menguji masing-masing fitur sesuai hak ak
 
 | Role | Username | Email | Password |
 | :--- | :--- | :--- | :--- |
-| **👑 Admin** | `admin` | `admin@admin.com` | `admin123` |
-| **👮 Petugas** | `petugas` | `petugas@petugas.com` | `petugas123` |
+| **👑 Admin** | `admin` | `admin@admin.com` | `KULIAHKERJANYATA` |
+| **👮 Petugas** | `petugas` | `petugas@petugas.com` | `12345678` |
 | **🏢 User** | `user` | `user@user.com` | `user123` |
 
 ---
