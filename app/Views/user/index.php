@@ -120,17 +120,17 @@
                                 <td class="align-middle text-center">
                                     <?php 
                                         $status = strtolower($row['status']);
-                                        if($status == 'acc' || $status == 'disetujui'): 
+                                        if($status == 'acc' || $status == 'disetujui' || $status == 'approved'): 
                                     ?>
                                         <span class="badge badge-success px-3 py-2 shadow-sm rounded-pill"><i class="fas fa-check-circle mr-1"></i> Disetujui</span>
-                                    <?php elseif($status == 'tolak' || $status == 'ditolak'): ?>
+                                    <?php elseif($status == 'tolak' || $status == 'ditolak' || $status == 'rejected'): ?>
                                         <span class="badge badge-danger px-3 py-2 shadow-sm rounded-pill"><i class="fas fa-times-circle mr-1"></i> Ditolak</span>
                                     <?php else: ?>
                                         <span class="badge badge-warning px-3 py-2 shadow-sm rounded-pill"><i class="fas fa-clock mr-1"></i> Pending</span>
                                     <?php endif; ?>
                                 </td>
                                 <td class="align-middle">
-                                    <?php if($status == 'tolak' || $status == 'ditolak'): ?>
+                                    <?php if($status == 'tolak' || $status == 'ditolak' || $status == 'rejected'): ?>
                                         <!-- Tampilkan Catatan Jika Ditolak -->
                                         <div class="alert alert-danger py-2 px-3 small mb-2 border-0 shadow-sm">
                                             <strong><i class="fas fa-comment-dots"></i> Pesan Petugas:</strong><br>
@@ -142,7 +142,7 @@
                                             <i class="fas fa-edit"></i> Perbaiki / Upload Ulang
                                         </a>
 
-                                    <?php elseif($status == 'acc' || $status == 'disetujui'): ?>
+                                    <?php elseif($status == 'acc' || $status == 'disetujui' || $status == 'approved'): ?>
                                         <span class="text-success small font-weight-bold"><i class="fas fa-check-circle"></i> Laporan valid & terverifikasi.</span>
                                     <?php else: ?>
                                         <span class="text-muted small"><em>Sedang menunggu pemeriksaan...</em></span>

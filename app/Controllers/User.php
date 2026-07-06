@@ -27,8 +27,8 @@ class User extends BaseController
         $data = [
             'judul' => 'Dashboard User',
             'totalLaporan'    => $this->laporanModel->where('user_id', $userId)->countAllResults(),
-            'approvedLaporan' => $this->laporanModel->where('user_id', $userId)->whereIn('status', ['acc', 'Disetujui'])->countAllResults(),
-            'rejectedLaporan' => $this->laporanModel->where('user_id', $userId)->whereIn('status', ['tolak', 'Ditolak'])->countAllResults(),
+            'approvedLaporan' => $this->laporanModel->where('user_id', $userId)->whereIn('status', ['acc', 'Disetujui', 'approved'])->countAllResults(),
+            'rejectedLaporan' => $this->laporanModel->where('user_id', $userId)->whereIn('status', ['tolak', 'Ditolak', 'rejected'])->countAllResults(),
             'daftarLaporan'   => $this->laporanModel->where('user_id', $userId)
                                                     ->orderBy('created_at', 'DESC')
                                                     ->findAll(),
@@ -104,30 +104,45 @@ class User extends BaseController
         }
 
         // 3. Simpan Data ke Database
+        $namablok = $this->request->getPost('nama_blok') ?: 'Data Tambang';
         $this->laporanModel->save([
-            'user_id' => user_id(),
-            'nama_blok' => $this->request->getPost('nama_blok'),
-            'luas_ha' => $this->request->getPost('luas_ha'),
-            'file'    => $namaFile, // Simpan nama file lampiran
-            'sd_tereka_volume' => $this->request->getPost('sd_tereka_volume'),
-            'sd_tereka_tonase' => $this->request->getPost('sd_tereka_tonase'),
-            'sd_terunjuk_volume' => $this->request->getPost('sd_terunjuk_volume'),
-            'sd_terunjuk_tonase' => $this->request->getPost('sd_terunjuk_tonase'),
-            'sd_terukur_volume' => $this->request->getPost('sd_terukur_volume'),
-            'sd_terukur_tonase' => $this->request->getPost('sd_terukur_tonase'),
-            'cd_terkira_volume' => $this->request->getPost('cd_terkira_volume'),
-            'cd_terkira_tonase' => $this->request->getPost('cd_terkira_tonase'),
-            'cd_terbukti_volume' => $this->request->getPost('cd_terbukti_volume'),
-            'cd_terbukti_tonase' => $this->request->getPost('cd_terbukti_tonase'),
-            'prod_harian' => $this->request->getPost('prod_harian'),
-            'prod_bulanan' => $this->request->getPost('prod_bulanan'),
-            'prod_tahunan' => $this->request->getPost('prod_tahunan'),
-            'umur_tambang' => $this->request->getPost('umur_tambang'),
-            'status' => 'pending',
+            'user_id'  => user_id(),
+            'judul'    => 'Laporan: ' . $namablok, // judul wajib diisi
+            'nama_blok' => $namablok,
+            'luas_ha'  => $this->request->getPost('luas_ha'),
+            'file'     => $namaFile ?? '', // Simpan nama file lampiran
+            'sd_tereka_volume'   => $this->request->getPost('sd_tereka_volume') ?: 0,
+            'sd_tereka_tonase'   => $this->request->getPost('sd_tereka_tonase') ?: 0,
+            'sd_terunjuk_volume' => $this->request->getPost('sd_terunjuk_volume') ?: 0,
+            'sd_terunjuk_tonase' => $this->request->getPost('sd_terunjuk_tonase') ?: 0,
+            'sd_terukur_volume'  => $this->request->getPost('sd_terukur_volume') ?: 0,
+            'sd_terukur_tonase'  => $this->request->getPost('sd_terukur_tonase') ?: 0,
+            'cd_terkira_volume'  => $this->request->getPost('cd_terkira_volume') ?: 0,
+            'cd_terkira_tonase'  => $this->request->getPost('cd_terkira_tonase') ?: 0,
+            'cd_terbukti_volume' => $this->request->getPost('cd_terbukti_volume') ?: 0,
+            'cd_terbukti_tonase' => $this->request->getPost('cd_terbukti_tonase') ?: 0,
+            'prod_harian'  => $this->request->getPost('prod_harian') ?: 0,
+            'prod_bulanan' => $this->request->getPost('prod_bulanan') ?: 0,
+            'prod_tahunan' => $this->request->getPost('prod_tahunan') ?: 0,
+            'umur_tambang' => $this->request->getPost('umur_tambang') ?: 0,
+            'status'           => 'pending',
             'catatan_penolakan' => null
         ]);
 
         return redirect()->to(base_url('user'))->with('success', 'Data & Dokumen tambang berhasil disimpan! Status saat ini: Pending.');
+    }
+
+    public function detailPerusahaan()
+    {
+        $userId = user_id();
+        $perusahaan = $this->perusahaanModel->where('user_id', $userId)->first();
+        
+        $data = [
+            'judul' => 'Detail Identitas Perusahaan',
+            'perusahaan' => $perusahaan,
+        ];
+
+        return view('user/detail-perusahaan', $data);
     }
 
     // ======================

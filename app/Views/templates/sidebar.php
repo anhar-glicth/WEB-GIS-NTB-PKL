@@ -58,7 +58,7 @@
         </a>
     </li>
     <li class="nav-item <?= ($seg1 == 'user' && ($seg2 == 'input-perusahaan' || $seg2 == 'detailPerusahaan')) ? 'active' : '' ?>">
-        <a class="nav-link" href="<?= base_url('user/input-perusahaan') ?>">
+        <a class="nav-link" href="<?= base_url('user/detailPerusahaan') ?>">
             <i class="fas fa-fw fa-building"></i>
             <span>Identitas Perusahaan</span>
         </a>
